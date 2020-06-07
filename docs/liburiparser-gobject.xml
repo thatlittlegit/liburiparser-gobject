@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+<!ENTITY version SYSTEM "version.xml">
+]>
+<book id="index" xmlns:xi="http://www.w3.org/2003/XInclude">
+  <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
+
+  <bookinfo>
+    <title>Liburiparser-GObject Reference Manual</title>
+    <releaseinfo>for liburiparser-gobject &version;</releaseinfo>
+  </bookinfo>
+
+  <chapter>
+    <title>API Reference</title>
+    <xi:include href="xml/liburiparser-gobjectversion.xml" />
+    <xi:include href="xml/upguri.xml" />
+  </chapter>
+</book>
