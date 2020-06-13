@@ -204,8 +204,6 @@ gboolean upg_uri_set_uri(UpgUri* self, const gchar* nuri)
  * upg_uri_get_uri:
  * @self: The URI to get the textual URI of.
  *
- * > This API is currently unimplemented.
- *
  * Converts the in-memory URI object into a string, in a process called
  * 'recomposition'.
  *
@@ -213,8 +211,26 @@ gboolean upg_uri_set_uri(UpgUri* self, const gchar* nuri)
  */
 gchar* upg_uri_get_uri(UpgUri* self)
 {
-    g_assert_not_reached();
-    (void)self;
+    g_assert(self->initialized);
+
+    int len, ret;
+    if ((ret = uriToStringCharsRequiredA(&self->internal_uri, &len)) != URI_SUCCESS) {
+        // FIXME use a GError instead of logging
+        g_warning("Failed to determine length of URI (code %d)", ret);
+        return NULL;
+    }
+    len++;
+
+    gchar* out = g_malloc0_n(len, sizeof(char));
+    int written;
+    if ((ret = uriToStringA(out, &self->internal_uri, len, &written)) != URI_SUCCESS) {
+        // FIXME use a GError instead of logging
+        g_warning("Failed to convert URI to string (code %d)", ret);
+        return NULL;
+    }
+
+    g_assert(g_utf8_validate_len(out, written - 1, NULL));
+    return out;
 }
 
 /**

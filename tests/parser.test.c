@@ -42,25 +42,25 @@ void new_returns_null_on_error()
     g_assert_nonnull(error);
 }
 
-struct KV {
+struct TestUri {
     gchar* k;
     gchar* v;
 };
 
+struct TestUri schemes[] = {
+    { "https://google.com", "https" },
+    { "gopher://gopher.floodgap.com", "gopher" },
+    { "gemini://gemini.circumlunar.space", "gemini" },
+    { "data:text/plain;charset=utf-8,hello", "data" },
+    { "file:///etc/passwd", "file" },
+    { "http://http.rip", "http" },
+    { "irc://irc.freenode.net", "irc" },
+    { "geo:39.108889,-76.771389", "geo" },
+    //{ "ipp:hell", "ipp" }, XXX
+};
+
 void schemes_are_correct()
 {
-    struct KV schemes[] = {
-        { "https://google.com", "https" },
-        { "gopher://gopher.floodgap.com", "gopher" },
-        { "gemini://gemini.circumlunar.space", "gemini" },
-        { "data:text/plain;charset=utf-8,hello", "data" },
-        { "file:///etc/passwd", "file" },
-        { "http://http.rip", "http" },
-        { "irc://irc.freenode.net", "irc" },
-        { "geo:39.108889,-76.771389", "geo" },
-        //{ "ipp:hell", "ipp" }, XXX
-    };
-
     for (int i = 0; i < 8; i++) { // TODO sizeof or whatever
         GError* err = NULL;
         UpgUri* uri = upg_uri_new(schemes[i].k, &err);
@@ -73,6 +73,34 @@ void schemes_are_correct()
     }
 }
 
+void to_string_is_reparsable()
+{
+    for (int i = 0; i < 8; i++) {
+        GError* err = NULL;
+        UpgUri* uri = upg_uri_new(schemes[i].k, &err);
+        gchar* oscheme = upg_uri_get_scheme(uri);
+
+        g_assert_null(err);
+        g_assert_nonnull(uri);
+
+        gchar* uristr = upg_uri_get_uri(uri);
+        g_assert_cmpstr(uristr, ==, schemes[i].k);
+
+        UpgUri* reparsed = upg_uri_new(uristr, &err);
+        g_assert_null(err);
+        g_assert_nonnull(reparsed);
+
+        gchar* rscheme = upg_uri_get_scheme(reparsed);
+        g_assert_cmpstr(oscheme, ==, rscheme);
+
+        g_free(rscheme);
+        g_free(oscheme);
+        g_free(uristr);
+        g_object_unref(uri);
+        g_object_unref(reparsed);
+    }
+}
+
 int main(int argc, char** argv)
 {
     setlocale(LC_ALL, "");
@@ -82,6 +110,7 @@ int main(int argc, char** argv)
     g_test_add_func("/urigobj/new-returns-instance", new_returns_instance);
     g_test_add_func("/urigobj/new-returns-null-on-error", new_returns_null_on_error);
     g_test_add_func("/urigobj/schemes-are-correct", schemes_are_correct);
+    g_test_add_func("/urigobj/to-string-is-reparsable", to_string_is_reparsable);
 
     return g_test_run();
 }
