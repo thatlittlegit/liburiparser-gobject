@@ -17,6 +17,10 @@ LIBURIPARSER_CHECK_VERSION
 <TITLE>UpgUri</TITLE>
 UpgUri
 upg_uri_new
+upg_uri_get_uri
+upg_uri_set_uri
+upg_uri_get_scheme
+upg_uri_set_scheme
 <SUBSECTION Standard>
 UPG_TYPE_URI
 <SUBSECTION Private>

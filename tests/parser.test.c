@@ -42,6 +42,37 @@ void new_returns_null_on_error()
     g_assert_nonnull(error);
 }
 
+struct KV {
+    gchar* k;
+    gchar* v;
+};
+
+void schemes_are_correct()
+{
+    struct KV schemes[] = {
+        { "https://google.com", "https" },
+        { "gopher://gopher.floodgap.com", "gopher" },
+        { "gemini://gemini.circumlunar.space", "gemini" },
+        { "data:text/plain;charset=utf-8,hello", "data" },
+        { "file:///etc/passwd", "file" },
+        { "http://http.rip", "http" },
+        { "irc://irc.freenode.net", "irc" },
+        { "geo:39.108889,-76.771389", "geo" },
+        //{ "ipp:hell", "ipp" }, XXX
+    };
+
+    for (int i = 0; i < 8; i++) { // TODO sizeof or whatever
+        GError* err = NULL;
+        UpgUri* uri = upg_uri_new(schemes[i].k, &err);
+
+        g_assert_null(err);
+        g_assert_nonnull(uri);
+        g_assert_cmpstr(upg_uri_get_scheme(uri), ==, schemes[i].v);
+
+        g_object_unref(uri);
+    }
+}
+
 int main(int argc, char** argv)
 {
     setlocale(LC_ALL, "");

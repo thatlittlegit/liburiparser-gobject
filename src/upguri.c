@@ -24,6 +24,17 @@ static void upg_uri_class_init(UpgUriClass*);
 static void upg_uri_init(UpgUri*);
 static void upg_uri_dispose(GObject*);
 static void upg_uri_finalize(GObject*);
+static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GParamSpec* spec);
+static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSpec* spec);
+static gchar* str_from_uritextrange(UriTextRangeA range);
+
+enum {
+    PROP_URI = 1,
+    PROP_SCHEME,
+    _N_PROPERTIES_
+};
+
+static GParamSpec* params[_N_PROPERTIES_] = { NULL };
 
 /**
  * SECTION:upguri
@@ -45,7 +56,7 @@ struct _UpgUri {
     GObject parent_instance;
 
     // private
-    char* given_uri;
+    gboolean initialized;
     UriUriA internal_uri;
 };
 
@@ -53,14 +64,29 @@ G_DEFINE_TYPE(UpgUri, upg_uri, G_TYPE_OBJECT);
 
 static void upg_uri_class_init(UpgUriClass* klass)
 {
-    G_OBJECT_CLASS(klass)->dispose = upg_uri_dispose;
-    G_OBJECT_CLASS(klass)->finalize = upg_uri_finalize;
+    GObjectClass* glass = G_OBJECT_CLASS(klass);
+
+    glass->set_property = upg_uri_set_property;
+    glass->get_property = upg_uri_get_property;
+    params[PROP_URI] = g_param_spec_string("uri",
+        "URI",
+        "The URI that the other properties grant information about.",
+        NULL,
+        G_PARAM_READWRITE);
+    params[PROP_SCHEME] = g_param_spec_string("scheme",
+        "Scheme",
+        "The scheme of the set %UpgUri:uri.",
+        NULL,
+        G_PARAM_READWRITE);
+    g_object_class_install_properties(glass, _N_PROPERTIES_, params);
+
+    glass->dispose = upg_uri_dispose;
+    glass->finalize = upg_uri_finalize;
 }
 
 static void upg_uri_init(UpgUri* self)
 {
-    UpgUri* priv = upg_uri_get_instance_private(self);
-    (void)priv;
+    self->initialized = FALSE;
 }
 
 static void upg_uri_dispose(GObject* self)
@@ -71,6 +97,50 @@ static void upg_uri_dispose(GObject* self)
 static void upg_uri_finalize(GObject* self)
 {
     G_OBJECT_CLASS(upg_uri_parent_class)->finalize(self);
+}
+
+static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GParamSpec* spec)
+{
+    UpgUri* self = G_TYPE_CHECK_INSTANCE_CAST(obj, UPG_TYPE_URI, UpgUri);
+
+    switch (id) {
+    case PROP_URI:
+        upg_uri_set_uri(self, g_value_get_string(value));
+        break;
+    case PROP_SCHEME:
+        upg_uri_set_scheme(self, g_value_get_string(value));
+        break;
+    default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
+        break;
+    }
+}
+
+static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSpec* spec)
+{
+    UpgUri* self = G_TYPE_CHECK_INSTANCE_CAST(obj, UPG_TYPE_URI, UpgUri);
+
+    switch (id) {
+    case PROP_URI:
+        g_value_set_string(value, upg_uri_get_uri(self));
+        break;
+    case PROP_SCHEME:
+        g_value_set_string(value, upg_uri_get_scheme(self));
+        break;
+    default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
+        break;
+    }
+}
+
+static char* str_from_uritextrange(UriTextRangeA range)
+{
+    g_assert_nonnull(range.first);
+    g_assert_nonnull(range.afterLast);
+
+    ssize_t ptr_len = range.afterLast - range.first;
+    g_assert(g_utf8_validate(range.first, ptr_len, NULL));
+    return g_strndup(range.first, ptr_len);
 }
 
 /**
@@ -87,7 +157,96 @@ static void upg_uri_finalize(GObject* self)
 UpgUri* upg_uri_new(gchar* uri, GError** error)
 {
     UpgUri* ret = g_object_new(UPG_TYPE_URI, NULL);
-    ret->given_uri = uri;
+    upg_uri_set_uri(ret, uri);
 
-    return ret;
+    if (ret->initialized) {
+        return ret;
+    }
+
+    g_object_unref(ret);
+    return NULL;
+}
+
+/**
+ * upg_uri_set_uri:
+ * @self: The URI object to reset.
+ * @nuri: The new textual URI to be parsed.
+ *
+ * Sets the current URI for the given #UpgUri.
+ *
+ * Returns: Whether or not the operation succeeded.
+ */
+gboolean upg_uri_set_uri(UpgUri* self, const gchar* nuri)
+{
+    if (self->initialized) {
+        uriFreeUriMembersA(&self->internal_uri);
+    }
+
+    if (nuri == NULL) {
+        g_info("NULL passed to upg_uri_set_uri, ignoring (this might not work in future!)");
+        return TRUE;
+    }
+
+    int ret = 0;
+    const gchar* errorPos = NULL;
+    if ((ret = uriParseSingleUriA(&self->internal_uri, nuri, &errorPos)) != URI_SUCCESS) {
+        // FIXME use a GError instead of logging
+        g_warning("Failed to parse URI '%s' (code %d, ep=\"%s\")", nuri, ret, errorPos);
+
+        self->initialized = FALSE;
+        return FALSE;
+    } else {
+        return self->initialized = TRUE;
+    }
+}
+
+/**
+ * upg_uri_get_uri:
+ * @self: The URI to get the textual URI of.
+ *
+ * > This API is currently unimplemented.
+ *
+ * Converts the in-memory URI object into a string, in a process called
+ * 'recomposition'.
+ *
+ * Returns: (transfer full): The textual representation of the URI.
+ */
+gchar* upg_uri_get_uri(UpgUri* self)
+{
+    g_assert_not_reached();
+    (void)self;
+}
+
+/**
+ * upg_uri_set_scheme:
+ * @self: The URI to set the scheme of.
+ * @nscheme: (transfer none): The new scheme.
+ *
+ * > This API is currently unimplemented, do not use.
+ *
+ * Sets the scheme of the URI.
+ *
+ * Returns: Whether or not the setting was successful.
+ */
+gboolean upg_uri_set_scheme(UpgUri* uri, const gchar* nscheme)
+{
+    g_assert(uri->initialized);
+    g_assert_not_reached();
+    (void)uri;
+    (void)nscheme;
+}
+
+/**
+ * upg_uri_get_scheme:
+ * @self: The URI to get the scheme of.
+
+ * Gets the current URI scheme for the given #UpgUri object. If the #UpgUri
+ * hasn't been initialized, returns #NULL.
+ *
+ * Returns: The scheme of the URI.
+ */
+gchar* upg_uri_get_scheme(UpgUri* uri)
+{
+    g_assert(uri->initialized);
+    return str_from_uritextrange(uri->internal_uri.scheme);
 }
