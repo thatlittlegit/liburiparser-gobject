@@ -43,11 +43,11 @@ void new_returns_null_on_error()
 }
 
 struct TestUri {
-    gchar* k;
-    gchar* v;
+    gchar* uri;
+    gchar* scheme;
 };
 
-struct TestUri schemes[] = {
+struct TestUri tests[] = {
     { "https://google.com", "https" },
     { "gopher://gopher.floodgap.com", "gopher" },
     { "gemini://gemini.circumlunar.space", "gemini" },
@@ -63,11 +63,11 @@ void schemes_are_correct()
 {
     for (int i = 0; i < 8; i++) { // TODO sizeof or whatever
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new(schemes[i].k, &err);
+        UpgUri* uri = upg_uri_new(tests[i].uri, &err);
 
         g_assert_null(err);
         g_assert_nonnull(uri);
-        g_assert_cmpstr(upg_uri_get_scheme(uri), ==, schemes[i].v);
+        g_assert_cmpstr(upg_uri_get_scheme(uri), ==, tests[i].scheme);
 
         g_object_unref(uri);
     }
@@ -77,7 +77,7 @@ void can_reset_schemes()
 {
     for (int i = 0; i < 8; i++) {
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new(schemes[i].k, &err);
+        UpgUri* uri = upg_uri_new(tests[i].uri, &err);
 
         g_assert_null(err);
         g_assert_nonnull(uri);
@@ -108,14 +108,14 @@ void to_string_is_reparsable()
 {
     for (int i = 0; i < 8; i++) {
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new(schemes[i].k, &err);
+        UpgUri* uri = upg_uri_new(tests[i].uri, &err);
         gchar* oscheme = upg_uri_get_scheme(uri);
 
         g_assert_null(err);
         g_assert_nonnull(uri);
 
         gchar* uristr = upg_uri_get_uri(uri);
-        g_assert_cmpstr(uristr, ==, schemes[i].k);
+        g_assert_cmpstr(uristr, ==, tests[i].uri);
 
         UpgUri* reparsed = upg_uri_new(uristr, &err);
         g_assert_null(err);
