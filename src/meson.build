@@ -1,20 +1,18 @@
+liburiparser_gobject_version_h = configure_file(
+  input: 'liburiparser-gobject-version.h.in',
+  output: 'liburiparser-gobject-version.h',
+  configuration: version_conf,
+)
+
 liburiparser_gobject_sources = [
   'upguri.c',
 ]
 
 liburiparser_gobject_headers = [
   'liburiparser-gobject.h',
+  liburiparser_gobject_version_h,
   'upguri.h',
 ]
-
-
-configure_file(
-  input: 'liburiparser-gobject-version.h.in',
-  output: 'liburiparser-gobject-version.h',
-  configuration: version_conf,
-  install: true,
-  install_dir: join_paths(get_option('includedir'), 'liburiparser-gobject')
-)
 
 liburiparser_gobject_lib = shared_library('uriparser-gobject-' + version_split[0],
   liburiparser_gobject_sources,
