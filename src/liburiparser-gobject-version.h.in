@@ -108,43 +108,4 @@
 #define LIBURIPARSER_GOBJECT_CHECK_VERSION(major,minor,patch) \
 		_LIBURIPARSER_GENERIC_CHECK_VERSION(GOBJECT_, major, minor, patch)
 
-/**
- * LIBURIPARSER_MAJOR_VERSION:
- *
- * The major version of liburiparser that the library was built with.
- */
-#define LIBURIPARSER_MAJOR_VERSION (@URI_MAJOR_VERSION@)
-
-/**
- * LIBURIPARSER_MINOR_VERSION:
- *
- * The minor version of liburiparser that the library was built with.
- */
-#define LIBURIPARSER_MINOR_VERSION (@URI_MINOR_VERSION@)
-
-/**
- * LIBURIPARSER_PATCH_VERSION:
- *
- * The patch version of liburiparser that the library was built with.
- */
-#define LIBURIPARSER_PATCH_VERSION (@URI_PATCH_VERSION@)
-
-/**
- * LIBURIPARSER_VERSION:
- *
- * The version of liburiparser, as a string, that the library was built with.
- */
-#define LIBURIPARSER_VERSION "@URI_VERSION@"
-
-/**
- * LIBURIPARSER_CHECK_VERSION:
- * @major: required major version
- * @minor: required minor version
- * @patch: required patch version
- *
- * Compile-time version checking for liburiparser (NOT the GObject wrapper.)
- * Returns %TRUE if the version is higher than asked for.
- */
-#define LIBURIPARSER_CHECK_VERSION(major,minor,patch) \
-		_LIBURIPARSER_GENERIC_CHECK_VERSION(, major, minor, patch)
 #endif /* LIBURIPARSER_GOBJECT_VERSION_H */
