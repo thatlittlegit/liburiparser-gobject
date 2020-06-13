@@ -238,8 +238,6 @@ gchar* upg_uri_get_uri(UpgUri* self)
  * @self: The URI to set the scheme of.
  * @nscheme: (transfer none): The new scheme.
  *
- * > This API is currently unimplemented, do not use.
- *
  * Sets the scheme of the URI.
  *
  * Returns: Whether or not the setting was successful.
@@ -247,9 +245,13 @@ gchar* upg_uri_get_uri(UpgUri* self)
 gboolean upg_uri_set_scheme(UpgUri* uri, const gchar* nscheme)
 {
     g_assert(uri->initialized);
-    g_assert_not_reached();
-    (void)uri;
-    (void)nscheme;
+
+    gchar* dupd = g_strdup(nscheme);
+    gchar* end = dupd + strlen(dupd);
+    uri->internal_uri.scheme.first = dupd;
+    uri->internal_uri.scheme.afterLast = end;
+
+    return TRUE;
 }
 
 /**
