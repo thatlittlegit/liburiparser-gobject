@@ -39,8 +39,6 @@ gchar* upg_uri_get_scheme(UpgUri* self);
 gchar* upg_uri_get_host(UpgUri* self);
 const guint8* upg_uri_get_host_data(UpgUri* self, guint8* protocol);
 gboolean upg_uri_set_host(UpgUri* self, gchar* host);
-gboolean upg_uri_set_host_data(UpgUri* self, guint8* data, guint8 protocol);
-gint upg_data_len_for_protocol(guint8 protocol);
 
 G_END_DECLS
 

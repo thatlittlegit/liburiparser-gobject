@@ -19,8 +19,6 @@ upg_uri_set_scheme
 upg_uri_get_host
 upg_uri_get_host_data
 upg_uri_set_host
-upg_uri_set_host_data
-upg_data_len_for_protocol
 <SUBSECTION Standard>
 UPG_TYPE_URI
 <SUBSECTION Private>

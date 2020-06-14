@@ -200,48 +200,6 @@ void host_is_resettable()
     }
 }
 
-void host_data_is_resettable()
-{
-    for (int i = 0; i < TEST_COUNT; i++) {
-        GError* err = NULL;
-        UpgUri* uri = upg_uri_new(tests[i].uri, &err);
-
-        g_assert_null(err);
-        g_assert_nonnull(uri);
-
-        guint8 oprotocol;
-        upg_uri_get_host_data(uri, &oprotocol);
-
-        upg_uri_set_host_data(uri, (guint8[]) { 0, 1, 1, 0 }, 4);
-        guint8 nprotocol;
-        const guint8* ndata = upg_uri_get_host_data(uri, &nprotocol);
-        g_assert_cmpuint(nprotocol, ==, 4);
-
-        g_assert_cmpmem(ndata, 4, ((guint8[]) { 0, 1, 1, 0 }), 4);
-
-        g_object_unref(uri);
-    }
-}
-
-void len_for_protocol_is_correct()
-{
-    for (guint8 i = 0; i < 255; i++) {
-        gint ret = upg_data_len_for_protocol(i);
-
-        if (i == 4) {
-            g_assert_cmpuint(ret, ==, 4);
-            continue;
-        }
-
-        if (i == 6) {
-            g_assert_cmpuint(ret, ==, 16);
-            continue;
-        }
-
-        g_assert_cmpuint(ret, ==, 0);
-    }
-}
-
 void properties_work()
 {
     for (int i = 0; i < TEST_COUNT; i++) {
@@ -274,8 +232,6 @@ int main(int argc, char** argv)
     g_test_add_func("/urigobj/to-string-is-reparsable", to_string_is_reparsable);
     g_test_add_func("/urigobj/host-is-correct", host_is_correct);
     g_test_add_func("/urigobj/host-is-resettable", host_is_resettable);
-    g_test_add_func("/urigobj/host-data-is-resettable", host_data_is_resettable);
-    g_test_add_func("/urigobj/len-for-protocol-is-correct", len_for_protocol_is_correct);
     g_test_add_func("/urigobj/properties-work", properties_work);
 
     return g_test_run();
