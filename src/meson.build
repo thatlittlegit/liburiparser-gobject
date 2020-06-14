@@ -20,6 +20,11 @@ liburiparser_gobject_lib = shared_library('uriparser-gobject-' + version_split[0
   install: true,
 )
 
+upg_pkg = declare_dependency(
+  link_with: liburiparser_gobject_lib,
+  dependencies: deps,
+)
+
 install_headers(liburiparser_gobject_headers, subdir: 'liburiparser-gobject')
 
 import('pkgconfig').generate(

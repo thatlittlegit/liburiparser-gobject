@@ -1,3 +1,0 @@
-#include <liburiparser-gobject/liburiparser-gobject.h>
-
-upg_uri_get_type
