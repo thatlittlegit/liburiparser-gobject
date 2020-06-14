@@ -93,6 +93,10 @@ static void upg_uri_init(UpgUri* self)
 static void upg_uri_dispose(GObject* self)
 {
     G_OBJECT_CLASS(upg_uri_parent_class)->dispose(self);
+
+    UpgUri* uri = G_TYPE_CHECK_INSTANCE_CAST(self, UPG_TYPE_URI, UpgUri);
+    uriFreeUriMembersA(&uri->internal_uri);
+    uri->initialized = FALSE;
 }
 
 static void upg_uri_finalize(GObject* self)

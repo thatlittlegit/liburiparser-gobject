@@ -31,6 +31,7 @@ void new_returns_instance()
     UpgUri* uri = upg_uri_new("https://test.test/path", NULL);
     g_assert_nonnull(uri);
     g_assert_true(G_TYPE_CHECK_INSTANCE_TYPE(uri, UPG_TYPE_URI));
+    g_object_unref(uri);
 }
 
 void new_returns_null_on_error()
@@ -86,8 +87,10 @@ void schemes_are_correct()
 
         g_assert_null(err);
         g_assert_nonnull(uri);
-        g_assert_cmpstr(upg_uri_get_scheme(uri), ==, tests[i].scheme);
+        gchar* scheme = upg_uri_get_scheme(uri);
+        g_assert_cmpstr(scheme, ==, tests[i].scheme);
 
+        g_free(scheme);
         g_object_unref(uri);
     }
 }
@@ -215,6 +218,8 @@ void host_data_is_resettable()
         g_assert_cmpuint(nprotocol, ==, 4);
 
         g_assert_cmpmem(ndata, 4, ((guint8[]) { 0, 1, 1, 0 }), 4);
+
+        g_object_unref(uri);
     }
 }
 
