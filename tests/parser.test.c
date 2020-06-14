@@ -61,6 +61,7 @@ struct TestUri tests[] = {
     { "http://127.0.0.1", "http", "127.0.0.1" },
     { "http://[0000:0000:0000:0000:0000:0000:0000:0000]", "http", "0000:0000:0000:0000:0000:0000:0000:0000" }
 };
+#define TEST_COUNT (sizeof(tests) / sizeof(struct TestUri))
 
 guint8 local_data4[] = { 4, 127, 0, 0, 1 };
 guint8 undef_data6[] = { 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -79,7 +80,7 @@ guint8* hostdatae[] = {
 
 void schemes_are_correct()
 {
-    for (int i = 0; i < 10; i++) { // TODO sizeof or whatever
+    for (int i = 0; i < TEST_COUNT; i++) {
         GError* err = NULL;
         UpgUri* uri = upg_uri_new(tests[i].uri, &err);
 
@@ -93,7 +94,7 @@ void schemes_are_correct()
 
 void can_reset_schemes()
 {
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < TEST_COUNT; i++) {
         GError* err = NULL;
         UpgUri* uri = upg_uri_new(tests[i].uri, &err);
 
@@ -124,7 +125,7 @@ void can_reset_schemes()
 
 void to_string_is_reparsable()
 {
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < TEST_COUNT; i++) {
         GError* err = NULL;
         UpgUri* uri = upg_uri_new(tests[i].uri, &err);
         gchar* oscheme = upg_uri_get_scheme(uri);
@@ -152,7 +153,7 @@ void to_string_is_reparsable()
 
 void host_is_correct()
 {
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < TEST_COUNT; i++) {
         GError* err = NULL;
         UpgUri* uri = upg_uri_new(tests[i].uri, &err);
 
@@ -177,7 +178,7 @@ void host_is_correct()
 
 void host_is_resettable()
 {
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < TEST_COUNT; i++) {
         GError* err = NULL;
         UpgUri* uri = upg_uri_new(tests[i].uri, &err);
 
@@ -198,7 +199,7 @@ void host_is_resettable()
 
 void host_data_is_resettable()
 {
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < TEST_COUNT; i++) {
         GError* err = NULL;
         UpgUri* uri = upg_uri_new(tests[i].uri, &err);
 
