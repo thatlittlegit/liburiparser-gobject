@@ -27,6 +27,7 @@ static void upg_uri_finalize(GObject*);
 static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GParamSpec* spec);
 static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSpec* spec);
 static gchar* str_from_uritextrange(UriTextRangeA range);
+static UriTextRangeA uritextrange_from_str(gchar* str);
 
 enum {
     PROP_URI = 1,
@@ -143,6 +144,14 @@ static char* str_from_uritextrange(UriTextRangeA range)
     return g_strndup(range.first, ptr_len);
 }
 
+static UriTextRangeA uritextrange_from_str(gchar* str)
+{
+    g_assert_nonnull(str);
+    int len = strlen(str);
+
+    return (UriTextRangeA) { str, str + len };
+}
+
 /**
  * upg_uri_new:
  * @uri: The input URI to be parsed.
@@ -245,12 +254,7 @@ gchar* upg_uri_get_uri(UpgUri* self)
 gboolean upg_uri_set_scheme(UpgUri* uri, const gchar* nscheme)
 {
     g_assert(uri->initialized);
-
-    gchar* dupd = g_strdup(nscheme);
-    gchar* end = dupd + strlen(dupd);
-    uri->internal_uri.scheme.first = dupd;
-    uri->internal_uri.scheme.afterLast = end;
-
+    uri->internal_uri.scheme = uritextrange_from_str(g_strdup(nscheme));
     return TRUE;
 }
 
@@ -267,4 +271,144 @@ gchar* upg_uri_get_scheme(UpgUri* uri)
 {
     g_assert(uri->initialized);
     return str_from_uritextrange(uri->internal_uri.scheme);
+}
+
+/**
+ * upg_uri_get_host:
+ * @self: The URI to get the hostname of.
+ *
+ * Gets the current hostname of the given #UpgUri. If @self doesn't have a
+ * hostname, but rather an IPvX address, then we return it as a string. See
+ * upg_uri_get_host_data() for getting that in a more numerical form.
+ *
+ * If there is no hostname, or the hostname is empty (""), then returns #NULL.
+ *
+ * Returns: (transfer full) (nullable): A stringified form of the hostname.
+ */
+gchar* upg_uri_get_host(UpgUri* uri)
+{
+    g_assert(uri->initialized);
+
+    if (uri->internal_uri.hostText.first == NULL
+        || uri->internal_uri.hostText.afterLast - uri->internal_uri.hostText.first == 0) {
+        return NULL;
+    }
+
+    return str_from_uritextrange(uri->internal_uri.hostText);
+}
+
+/**
+ * upg_uri_get_host_data:
+ * @self: The URI to get the hostname of.
+ * @protocol: (out): The protocol used by the name. Set to zero if no valid
+ *                   protocol.
+ *
+ * Gets the current host information as an array, with a value indicating the
+ * protocol put into @uri.
+ *
+ * |[<!-- language="C" -->
+ * guint8 protocol;
+ * guint8* data = upg_uri_get_host_data (uri, &protocol);
+ *
+ * if (data == NULL)
+ *   // hostname or IPvFuture
+ * else if (protocol == 4)
+ *   // IPv4
+ * else if (protocol == 6)
+ *   // IPv6
+ * else
+ *   g_assert_not_reached ();
+ * ]|
+ *
+ * Returns: (transfer none): The host data as an array. Do not modify it! It
+ * points directly to an internal data structure's data. (It is also not
+ * guaranteed to work like this forever; it won't be a breaking change if this
+ * doesn't anymore.)
+ */
+const guint8* upg_uri_get_host_data(UpgUri* uri, guint8* protocol)
+{
+    g_assert(uri->initialized);
+
+    UriHostDataA* data = &uri->internal_uri.hostData;
+    if (data->ip4 != NULL) {
+        *protocol = 4;
+        return data->ip4->data;
+    }
+
+    if (data->ip6 != NULL) {
+        *protocol = 6;
+        return data->ip6->data;
+    }
+
+    return NULL;
+}
+
+/**
+ * upg_uri_set_host:
+ * @self: The URI to set the host of.
+ * @host: (transfer none): The host to set the URI to.
+ *
+ * Sets the URI of @self to @nhost. The structured data is always reset after
+ * this, but in future it might be set properly if @nhost is a valid IPvX
+ * address.
+ *
+ * Returns: Whether or not the setting succeeded.
+ */
+gboolean upg_uri_set_host(UpgUri* uri, gchar* host)
+{
+    g_assert(uri->initialized);
+
+    // FIXME we should probably parse the incoming host to check if it's IPvX
+    uri->internal_uri.hostData = (UriHostDataA) { NULL, NULL, { NULL, NULL } };
+    uri->internal_uri.hostText = uritextrange_from_str(host);
+
+    return TRUE;
+}
+
+/**
+ * upg_uri_set_host_data:
+ * @self: The URI to set the host of.
+ * @protocol: The protocol version. Can be either 0, 4, or 6.
+ * @data: (transfer full): The new host value.
+ *
+ * Sets the URI host data, as returned from upg_uri_get_host_data(). The host
+ * text is set to the host data, stringified.
+ *
+ * Returns: #TRUE if the protocol was valid (4 or 6).
+ */
+gboolean upg_uri_set_host_data(UpgUri* uri, guint8* data, guint8 protocol)
+{
+    g_assert(uri->initialized);
+
+    if (protocol == 4) {
+        uri->internal_uri.hostData.ip4 = (UriIp4*)data;
+        return TRUE;
+    }
+
+    if (protocol == 6) {
+        uri->internal_uri.hostData.ip6 = (UriIp6*)data;
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/**
+ * upg_data_len_for_protocol:
+ * @protocol: The protocol to return information for.
+ *
+ * Returns: The number of bytes host data takes for the given protocol, or 0
+ *          if @protocol is invalid.
+ */
+gint upg_data_len_for_protocol(guint8 protocol)
+{
+    if (protocol == 4) {
+        return 4;
+    }
+
+    if (protocol == 6) {
+        return 16;
+    }
+
+    return 0;
 }
