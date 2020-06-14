@@ -30,8 +30,8 @@ static gchar* str_from_uritextrange(UriTextRangeA range);
 static UriTextRangeA uritextrange_from_str(gchar* str);
 
 enum {
-    PROP_URI = 1,
-    PROP_SCHEME,
+    PROP_SCHEME = 1,
+    PROP_HOST,
     _N_PROPERTIES_
 };
 
@@ -69,14 +69,16 @@ static void upg_uri_class_init(UpgUriClass* klass)
 
     glass->set_property = upg_uri_set_property;
     glass->get_property = upg_uri_get_property;
-    params[PROP_URI] = g_param_spec_string("uri",
-        "URI",
-        "The URI that the other properties grant information about.",
-        NULL,
-        G_PARAM_READWRITE);
     params[PROP_SCHEME] = g_param_spec_string("scheme",
         "Scheme",
-        "The scheme of the set %UpgUri:uri.",
+        "The scheme of the UpgUri object.",
+        NULL,
+        G_PARAM_READWRITE);
+    params[PROP_HOST] = g_param_spec_string("host",
+        "Hostname",
+        "The hostname of this UpgUri object."
+        "If hostdata is set, then this will be set to the stringified version "
+        "of that. If this is set, hostdata is NULL.",
         NULL,
         G_PARAM_READWRITE);
     g_object_class_install_properties(glass, _N_PROPERTIES_, params);
@@ -109,12 +111,12 @@ static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GP
     UpgUri* self = G_TYPE_CHECK_INSTANCE_CAST(obj, UPG_TYPE_URI, UpgUri);
 
     switch (id) {
-    case PROP_URI:
-        upg_uri_set_uri(self, g_value_get_string(value));
-        break;
     case PROP_SCHEME:
         upg_uri_set_scheme(self, g_value_get_string(value));
         break;
+    case PROP_HOST:
+        // FIXME const props
+        upg_uri_set_host(self, (gchar*)g_value_get_string(value));
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
         break;
@@ -126,12 +128,11 @@ static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSp
     UpgUri* self = G_TYPE_CHECK_INSTANCE_CAST(obj, UPG_TYPE_URI, UpgUri);
 
     switch (id) {
-    case PROP_URI:
-        g_value_set_string(value, upg_uri_get_uri(self));
-        break;
     case PROP_SCHEME:
         g_value_set_string(value, upg_uri_get_scheme(self));
         break;
+    case PROP_HOST:
+        g_value_set_string(value, upg_uri_get_host(self));
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
         break;
@@ -258,6 +259,12 @@ gchar* upg_uri_get_uri(UpgUri* self)
 gboolean upg_uri_set_scheme(UpgUri* uri, const gchar* nscheme)
 {
     g_assert(uri->initialized);
+
+    if (nscheme == NULL) {
+        uri->internal_uri.scheme = (UriTextRangeA) { NULL, NULL };
+        return TRUE;
+    }
+
     uri->internal_uri.scheme = uritextrange_from_str(g_strdup(nscheme));
     return TRUE;
 }
@@ -273,8 +280,11 @@ gboolean upg_uri_set_scheme(UpgUri* uri, const gchar* nscheme)
  */
 gchar* upg_uri_get_scheme(UpgUri* uri)
 {
-    g_assert(uri->initialized);
-    return str_from_uritextrange(uri->internal_uri.scheme);
+    if (uri->initialized) {
+        return str_from_uritextrange(uri->internal_uri.scheme);
+    }
+
+    return NULL;
 }
 
 /**

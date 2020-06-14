@@ -242,6 +242,25 @@ void len_for_protocol_is_correct()
     }
 }
 
+void properties_work()
+{
+    for (int i = 0; i < TEST_COUNT; i++) {
+        GError* err = NULL;
+        UpgUri* uri = upg_uri_new(tests[i].uri, &err);
+        g_assert_null(err);
+        g_assert_nonnull(uri);
+
+        GValue vscheme = G_VALUE_INIT;
+        g_value_init(&vscheme, G_TYPE_STRING);
+        g_value_set_static_string(&vscheme, "junk");
+        g_object_set_property(G_OBJECT(uri), "scheme", &vscheme);
+        gchar* nscheme = upg_uri_get_scheme(uri);
+        g_assert_cmpstr(nscheme, ==, "junk");
+        g_free(nscheme);
+        g_value_unset(&vscheme);
+    }
+}
+
 int main(int argc, char** argv)
 {
     setlocale(LC_ALL, "");
@@ -257,6 +276,7 @@ int main(int argc, char** argv)
     g_test_add_func("/urigobj/host-is-resettable", host_is_resettable);
     g_test_add_func("/urigobj/host-data-is-resettable", host_data_is_resettable);
     g_test_add_func("/urigobj/len-for-protocol-is-correct", len_for_protocol_is_correct);
+    g_test_add_func("/urigobj/properties-work", properties_work);
 
     return g_test_run();
 }
