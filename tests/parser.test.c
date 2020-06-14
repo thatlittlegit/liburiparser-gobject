@@ -23,7 +23,7 @@
 
 void versions_correct()
 {
-    g_assert_true(LIBURIPARSER_GOBJECT_CHECK_VERSION(0, 0, 0));
+    g_assert_true(UPG_CHECK_VERSION(0, 0, 0));
 }
 
 void new_returns_instance()

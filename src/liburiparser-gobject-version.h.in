@@ -25,22 +25,6 @@
 # error "Only <liburiparser-gobject.h> can be included directly."
 #endif
 
-/*
- * _LIBURIPARSER_GENERIC_CHECK_VERSION:
- * @add: LIBURIPARSER_******_... - fill in the blank
- * @major: required major version
- * @minor: required minor version
- * @patch: required patch version
- *
- * Compile-time version checking. Evaluates to %TRUE if the version
- * of liburiparser-gobject is greater than the required one.
- */
-#define _LIBURIPARSER_GENERIC_CHECK_VERSION(add,major,minor,patch)   \
-        (LIBURIPARSER_##add##MAJOR_VERSION > (major) || \
-         (LIBURIPARSER_##add##MAJOR_VERSION == (major) && LIBURIPARSER_##add##MINOR_VERSION > (minor)) || \
-         (LIBURIPARSER_##add##MAJOR_VERSION == (major) && LIBURIPARSER_##add##MINOR_VERSION == (minor) && \
-          LIBURIPARSER_##add##PATCH_VERSION >= (patch)))
-
 /**
  * SECTION:liburiparser-gobjectversion
  * @short_description: liburiparser-gobject version checking
@@ -66,38 +50,38 @@
  */
 
 /**
- * LIBURIPARSER_GOBJECT_MAJOR_VERSION:
+ * UPG_MAJOR_VERSION:
  *
  * The major version component for Liburiparser-GObject. This one indicates
  * breaking changes (not necessarily exciting features).
  */
-#define LIBURIPARSER_GOBJECT_MAJOR_VERSION (@MAJOR_VERSION@)
+#define UPG_MAJOR_VERSION (@MAJOR_VERSION@)
 
 /**
- * LIBURIPARSER_GOBJECT_MINOR_VERSION:
+ * UPG_MINOR_VERSION:
  *
  * The minor version component for Liburiparser-GObject. This one indicates
  * new features that are completely backwards-compatible.
  */
-#define LIBURIPARSER_GOBJECT_MINOR_VERSION (@MINOR_VERSION@)
+#define UPG_MINOR_VERSION (@MINOR_VERSION@)
 
 /**
- * LIBURIPARSER_GOBJECT_PATCH_VERSION:
+ * UPG_PATCH_VERSION:
  *
  * The patch version component for Liburiparser-GObject. This indicates bugfixes
  * and other tweaks that is completely compatible.
  */
-#define LIBURIPARSER_GOBJECT_PATCH_VERSION (@PATCH_VERSION@)
+#define UPG_PATCH_VERSION (@PATCH_VERSION@)
 
 /**
- * LIBURIPARSER_GOBJECT_VERSION:
+ * UPG_VERSION:
  *
  * The overall liburiparser-gobject version, encoded as a string.
  */
-#define LIBURIPARSER_GOBJECT_VERSION "@VERSION@"
+#define UPG_VERSION "@VERSION@"
 
 /**
- * LIBURIPARSER_GOBJECT_CHECK_VERSION:
+ * UPG_CHECK_VERSION:
  * @major: required major version
  * @minor: required minor version
  * @patch: required patch version
@@ -105,7 +89,10 @@
  * Compile-time version checking for liburiparser-gobject. Returns %TRUE if the
  * version is higher than asked for.
  */
-#define LIBURIPARSER_GOBJECT_CHECK_VERSION(major,minor,patch) \
-		_LIBURIPARSER_GENERIC_CHECK_VERSION(GOBJECT_, major, minor, patch)
+#define UPG_CHECK_VERSION(major,minor,patch) \
+        (UPG_MAJOR_VERSION > (major) || \
+         (UPG_MAJOR_VERSION == (major) && UPG_MINOR_VERSION > (minor)) || \
+         (UPG_MAJOR_VERSION == (major) && UPG_MINOR_VERSION == (minor) && \
+          UPG_PATCH_VERSION >= (patch)))
 
 #endif /* LIBURIPARSER_GOBJECT_VERSION_H */
