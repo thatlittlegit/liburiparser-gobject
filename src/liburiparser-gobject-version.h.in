@@ -90,9 +90,9 @@
  * version is higher than asked for.
  */
 #define UPG_CHECK_VERSION(major,minor,patch) \
-        (UPG_MAJOR_VERSION > (major) || \
-         (UPG_MAJOR_VERSION == (major) && UPG_MINOR_VERSION > (minor)) || \
-         (UPG_MAJOR_VERSION == (major) && UPG_MINOR_VERSION == (minor) && \
-          UPG_PATCH_VERSION >= (patch)))
+        (UPG_MAJOR_VERSION == (major) && \
+         (UPG_MINOR_VERSION > (minor) || \
+         (UPG_MINOR_VERSION == (minor) && UPG_PATCH_VERSION >= (patch))))
+gboolean upg_check_version(gint major, gint minor, gint patch);
 
 #endif /* LIBURIPARSER_GOBJECT_VERSION_H */

@@ -21,9 +21,16 @@
 #include <liburiparser-gobject.h>
 #include <locale.h>
 
-void versions_correct()
+void version_check_accurate()
 {
-    g_assert_true(UPG_CHECK_VERSION(0, 0, 0));
+    g_assert_false(UPG_CHECK_VERSION(UPG_MAJOR_VERSION - 1, 0, 0));
+    g_assert_true(UPG_CHECK_VERSION(UPG_MAJOR_VERSION, UPG_MINOR_VERSION - 1, UPG_PATCH_VERSION + 1));
+    g_assert_false(UPG_CHECK_VERSION(UPG_MAJOR_VERSION, UPG_MINOR_VERSION + 1, UPG_PATCH_VERSION + 1));
+    g_assert_false(UPG_CHECK_VERSION(UPG_MAJOR_VERSION, UPG_MINOR_VERSION, UPG_PATCH_VERSION + 1));
+    g_assert_false(upg_check_version(UPG_MAJOR_VERSION - 1, 0, 0));
+    g_assert_true(upg_check_version(UPG_MAJOR_VERSION, UPG_MINOR_VERSION - 1, UPG_PATCH_VERSION + 1));
+    g_assert_false(upg_check_version(UPG_MAJOR_VERSION, UPG_MINOR_VERSION + 1, UPG_PATCH_VERSION + 1));
+    g_assert_false(UPG_CHECK_VERSION(UPG_MAJOR_VERSION, UPG_MINOR_VERSION, UPG_PATCH_VERSION + 1));
 }
 
 void new_returns_instance()
@@ -224,7 +231,7 @@ int main(int argc, char** argv)
     setlocale(LC_ALL, "");
     g_test_init(&argc, &argv, NULL);
 
-    g_test_add_func("/urigobj/versions-correct", versions_correct);
+    g_test_add_func("/urigobj/version-check-accurate", version_check_accurate);
     g_test_add_func("/urigobj/new-returns-instance", new_returns_instance);
     g_test_add_func("/urigobj/new-returns-null-on-error", new_returns_null_on_error);
     g_test_add_func("/urigobj/schemes-are-correct", schemes_are_correct);

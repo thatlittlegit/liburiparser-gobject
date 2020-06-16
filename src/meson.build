@@ -5,6 +5,7 @@ liburiparser_gobject_version_h = configure_file(
 )
 
 liburiparser_gobject_sources = [
+  'liburiparser-gobject-version.c',
   'upguri.c',
 ]
 
