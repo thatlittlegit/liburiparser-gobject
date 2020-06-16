@@ -21,6 +21,8 @@
 #include <liburiparser-gobject.h>
 #include <locale.h>
 
+static gboolean compare_lists(GList* list, gchar* slash_separated_expected);
+
 void version_check_accurate()
 {
     g_assert_false(UPG_CHECK_VERSION(UPG_MAJOR_VERSION - 1, 0, 0));
@@ -54,20 +56,21 @@ struct TestUri {
     gchar* uri;
     gchar* scheme;
     gchar* host;
+    gchar* path;
 };
 
 struct TestUri tests[] = {
-    { "https://google.com", "https", "google.com" },
-    { "gopher://gopher.floodgap.com", "gopher", "gopher.floodgap.com" },
-    { "gemini://gemini.circumlunar.space", "gemini", "gemini.circumlunar.space" },
-    { "data:text/plain;charset=utf-8,hello", "data", NULL },
-    { "file:///etc/passwd", "file", NULL },
-    { "http://http.rip", "http", "http.rip" },
-    { "irc://irc.freenode.net", "irc", "irc.freenode.net" },
-    { "geo:39.108889,-76.771389", "geo", NULL },
+    { "https://google.com/search/howsearchworks", "https", "google.com", "/search/howsearchworks" },
+    { "gopher://gopher.floodgap.com/0/gopher/proxy", "gopher", "gopher.floodgap.com", "/0/gopher/proxy" },
+    { "gemini://gemini.circumlunar.space/docs/specification.gmi", "gemini", "gemini.circumlunar.space", "/docs/specification.gmi" },
+    { "data:text/plain;charset=utf-8,hello", "data", NULL, NULL },
+    { "file:///etc/passwd", "file", NULL, "/etc/passwd" },
+    { "http://http.rip", "http", "http.rip", NULL },
+    { "irc://irc.freenode.net", "irc", "irc.freenode.net", NULL },
+    { "geo:39.108889,-76.771389", "geo", NULL, NULL },
     //{ "ipp:hell", "ipp" }, XXX
-    { "http://127.0.0.1", "http", "127.0.0.1" },
-    { "http://[0000:0000:0000:0000:0000:0000:0000:0000]", "http", "0000:0000:0000:0000:0000:0000:0000:0000" }
+    { "http://127.0.0.1", "http", "127.0.0.1", NULL },
+    { "http://[0000:0000:0000:0000:0000:0000:0000:0000]", "http", "0000:0000:0000:0000:0000:0000:0000:0000", NULL }
 };
 #define TEST_COUNT (sizeof(tests) / sizeof(struct TestUri))
 
@@ -223,6 +226,97 @@ void properties_work()
         g_assert_cmpstr(nscheme, ==, "junk");
         g_free(nscheme);
         g_value_unset(&vscheme);
+
+        GValue vpath = G_VALUE_INIT;
+        g_value_init(&vpath, G_TYPE_POINTER);
+        GList* npath = NULL;
+        npath = g_list_append(npath, "changed");
+        g_value_set_pointer(&vpath, npath);
+        g_object_set_property(G_OBJECT(uri), "path", &vpath);
+        GList* rpath = upg_uri_get_path(uri);
+        GList* ipath = NULL;
+        GValue Rpath = G_VALUE_INIT;
+        g_object_get_property(G_OBJECT(uri), "path", &Rpath);
+        ipath = g_value_get_pointer(&Rpath);
+        g_assert_true(compare_lists(ipath, "/changed"));
+        g_assert_true(compare_lists(rpath, "/changed"));
+
+        g_list_free_full(ipath, g_free);
+        g_list_free(npath);
+        g_list_free_full(rpath, g_free);
+        g_value_unset(&Rpath);
+        g_value_unset(&vpath);
+
+        g_object_unref(uri);
+    }
+}
+
+static gboolean compare_lists(GList* list, gchar* wanted_str)
+{
+    gchar* current = wanted_str + 1;
+    for (int i = 0; i < g_list_length(list); i++) {
+        gchar* next = strchr(current, '/');
+        gchar* nc = g_strndup(current, next ? next - current : strlen(current));
+        g_assert_cmpstr(g_list_nth_data(list, i), ==, nc);
+        g_free(nc);
+        current = strchr(current, '/') + 1;
+    }
+
+    return TRUE;
+}
+
+void path_segments_are_right()
+{
+    for (int i = 0; i < TEST_COUNT; i++) {
+        GError* err = NULL;
+        UpgUri* uri = upg_uri_new(tests[i].uri, &err);
+        g_assert_null(err);
+        g_assert_nonnull(uri);
+
+        if (tests[i].path == NULL) {
+            continue; // FIXME data uris, etc. have odd behavior
+            g_assert_null(upg_uri_get_path(uri));
+            gchar* pathstr = upg_uri_get_path_str(uri);
+            g_assert_cmpstr(pathstr, ==, "");
+            g_free(pathstr);
+        }
+
+        GList* pathl = upg_uri_get_path(uri);
+        g_assert_true(compare_lists(pathl, tests[i].path));
+        g_list_free_full(pathl, g_free);
+
+        gchar* paths = upg_uri_get_path_str(uri);
+        g_assert_cmpstr(paths, ==, tests[i].path);
+
+        GList* list = NULL;
+        list = g_list_append(list, "path");
+        list = g_list_append(list, "set");
+        list = g_list_append(list, "successfully");
+        upg_uri_set_path(uri, list);
+        GList* set = upg_uri_get_path(uri);
+        g_list_free(list);
+        g_assert_true(compare_lists(set, "/path/set/successfully"));
+        g_list_free_full(set, g_free);
+        gchar* sets = upg_uri_get_path_str(uri);
+        g_assert_cmpstr(sets, ==, "/path/set/successfully");
+        g_free(sets);
+        gchar* sett = upg_uri_get_uri(uri);
+        g_assert_nonnull(g_strrstr(sett, "/path/set/successfully"));
+        g_free(sett);
+
+        GList* npath = NULL;
+        npath = g_list_append(npath, "path");
+        npath = g_list_append(npath, "changed");
+        upg_uri_set_path(uri, npath);
+        GList* spath = upg_uri_get_path(uri);
+        g_assert_true(compare_lists(spath, "/path/changed"));
+        gchar* tpath = upg_uri_get_path_str(uri);
+        g_assert_cmpstr(tpath, ==, "/path/changed");
+        g_list_free(npath);
+        g_list_free_full(spath, g_free);
+        g_free(tpath);
+
+        g_object_unref(uri);
     }
 }
 
@@ -240,6 +334,7 @@ int main(int argc, char** argv)
     g_test_add_func("/urigobj/host-is-correct", host_is_correct);
     g_test_add_func("/urigobj/host-is-resettable", host_is_resettable);
     g_test_add_func("/urigobj/properties-work", properties_work);
+    g_test_add_func("/urigobj/path-segments-are-right", path_segments_are_right);
 
     return g_test_run();
 }

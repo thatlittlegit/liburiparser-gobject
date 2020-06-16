@@ -32,6 +32,8 @@ static UriTextRangeA uritextrange_from_str(gchar* str);
 enum {
     PROP_SCHEME = 1,
     PROP_HOST,
+    PROP_PATH,
+    PROP_PATHSTR,
     _N_PROPERTIES_
 };
 
@@ -81,6 +83,21 @@ static void upg_uri_class_init(UpgUriClass* klass)
         "of that. If this is set, hostdata is NULL.",
         NULL,
         G_PARAM_READWRITE);
+    /**
+     * UpgUri:path: (type GList(gchar*))
+     *
+     * The path segments of this object.
+     */
+    params[PROP_PATH] = g_param_spec_pointer("path",
+        "Path",
+        "The path segments of this object.",
+        G_PARAM_READWRITE);
+    params[PROP_PATHSTR] = g_param_spec_string("path_str",
+        "Path string",
+        "The path segments of this object, represented as a string. "
+        "May be settable in future.",
+        NULL,
+        G_PARAM_READABLE);
     g_object_class_install_properties(glass, _N_PROPERTIES_, params);
 
     glass->dispose = upg_uri_dispose;
@@ -97,7 +114,13 @@ static void upg_uri_dispose(GObject* self)
     G_OBJECT_CLASS(upg_uri_parent_class)->dispose(self);
 
     UpgUri* uri = G_TYPE_CHECK_INSTANCE_CAST(self, UPG_TYPE_URI, UpgUri);
-    uriFreeUriMembersA(&uri->internal_uri);
+    // XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX
+    //     Removed for a single commit, needs to be fixed.
+    // XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX
+    // uriFreeUriMembersA(&uri->internal_uri);
+    // XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX
+    //     Removed for a single commit, needs to be fixed.
+    // XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX
     uri->initialized = FALSE;
 }
 
@@ -117,6 +140,10 @@ static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GP
     case PROP_HOST:
         // FIXME const props
         upg_uri_set_host(self, (gchar*)g_value_get_string(value));
+        break;
+    case PROP_PATH:
+        upg_uri_set_path(self, g_value_get_pointer(value));
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
         break;
@@ -133,6 +160,13 @@ static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSp
         break;
     case PROP_HOST:
         g_value_set_string(value, upg_uri_get_host(self));
+        break;
+    case PROP_PATH:
+        g_value_set_pointer(value, upg_uri_get_path(self));
+        break;
+    case PROP_PATHSTR:
+        g_value_set_string(value, upg_uri_get_path_str(self));
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
         break;
@@ -375,6 +409,101 @@ gboolean upg_uri_set_host(UpgUri* uri, gchar* host)
     // FIXME we should probably parse the incoming host to check if it's IPvX
     uri->internal_uri.hostData = (UriHostDataA) { NULL, NULL, { NULL, NULL } };
     uri->internal_uri.hostText = uritextrange_from_str(host);
+
+    return TRUE;
+}
+
+/**
+ * upg_uri_get_path:
+ * @self: The URI to get path information from.
+ *
+ * Gets the path information for @uri and returns it as a #GList. If @uri hasn't
+ * been initialized, returns #NULL.
+ *
+ * Note that the list elements are owned by you. You might want to use
+ * g_list_free_full() to free the list, instead of just g_list_free or similar.
+ *
+ * Returns: (nullable) (transfer full) (element-type gchar*): The path segments,
+ *                                                            or #NULL.
+ */
+GList* upg_uri_get_path(UpgUri* uri)
+{
+    if (!uri->initialized) {
+        return NULL;
+    }
+
+    GList* list = NULL;
+    const UriPathSegmentA start = { { "", "" }, uri->internal_uri.pathHead };
+    const UriPathSegmentA* current = &start;
+
+    if (current == NULL) {
+        return NULL;
+    }
+
+    do {
+        current = current->next;
+        list = g_list_prepend(list, str_from_uritextrange(current->text));
+    } while (current != NULL && current != uri->internal_uri.pathTail);
+    list = g_list_reverse(list);
+
+    return list;
+}
+
+/**
+ * upg_uri_get_path_str:
+ * @uri: The URI to get the stringified path for.
+ *
+ * Takes the path data from upg_uri_get_path() and puts it into a string, using
+ * slashes as separators.
+ *
+ * Returns: (nullable) (transfer full): The stringified path segments, or #NULL
+ *                                      if @uri hasn't been initialized.
+ */
+gchar* upg_uri_get_path_str(UpgUri* uri)
+{
+    if (!uri->initialized) {
+        return NULL;
+    }
+
+    GString* ret = g_string_new(NULL);
+
+    GList* current = upg_uri_get_path(uri);
+    if (current == NULL) {
+        return "";
+    }
+
+    while (current != NULL) {
+        g_string_append_c(ret, '/');
+        g_string_append(ret, (const gchar*)current->data);
+        current = current->next;
+    }
+
+    g_list_free_full(current, g_free);
+    return g_string_free(ret, FALSE);
+}
+
+/**
+ * upg_uri_set_path:
+ * @self: The #UpgUri to set the path of.
+ * @list: (transfer none) (type GList(gchar*)): A list of path segments.
+ *
+ * Sets the path segments of @uri to @list.
+ *
+ * Returns: Whether or not the setting succeeded.
+ */
+gboolean upg_uri_set_path(UpgUri* uri, GList* list)
+{
+    gint len = g_list_length(list);
+
+    UriPathSegmentA* segments = g_new0(UriPathSegmentA, len);
+    GList* current = list;
+    for (gint i = 0; current != NULL; i++) {
+        segments[i] = (UriPathSegmentA) { uritextrange_from_str((gchar*)current->data), &segments[i + 1] };
+        current = current->next;
+    }
+    segments[len - 1].next = NULL;
+    uri->internal_uri.pathHead = segments;
+    uri->internal_uri.pathTail = &segments[len - 1];
 
     return TRUE;
 }
