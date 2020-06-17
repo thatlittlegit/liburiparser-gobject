@@ -283,6 +283,7 @@ void path_segments_are_right()
         g_assert_nonnull(uri);
 
         if (tests[i].path == NULL) {
+            g_object_unref(uri);
             continue; // FIXME data uris, etc. have odd behavior
             g_assert_null(upg_uri_get_path(uri));
             gchar* pathstr = upg_uri_get_path_str(uri);

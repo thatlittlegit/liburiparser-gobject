@@ -37,6 +37,12 @@ enum {
     _N_PROPERTIES_
 };
 
+enum {
+    MASK_SCHEME = 0,
+    MASK_HOST = 1 << 1,
+    MASK_PATH = 1 << 2,
+};
+
 static GParamSpec* params[_N_PROPERTIES_] = { NULL };
 
 /**
@@ -61,6 +67,7 @@ struct _UpgUri {
     // private
     gboolean initialized;
     UriUriA internal_uri;
+    gint32 modified;
 };
 
 G_DEFINE_TYPE(UpgUri, upg_uri, G_TYPE_OBJECT);
@@ -114,13 +121,26 @@ static void upg_uri_dispose(GObject* self)
     G_OBJECT_CLASS(upg_uri_parent_class)->dispose(self);
 
     UpgUri* uri = G_TYPE_CHECK_INSTANCE_CAST(self, UPG_TYPE_URI, UpgUri);
-    // XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX
-    //     Removed for a single commit, needs to be fixed.
-    // XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX
-    // uriFreeUriMembersA(&uri->internal_uri);
-    // XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX
-    //     Removed for a single commit, needs to be fixed.
-    // XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX
+
+    if (uri->modified & MASK_SCHEME) {
+        g_free((gchar*)uri->internal_uri.scheme.first);
+        uri->internal_uri.scheme.first = NULL;
+        uri->internal_uri.scheme.afterLast = NULL;
+    }
+
+    if (uri->modified & MASK_HOST) {
+        g_free((gchar*)uri->internal_uri.hostText.first);
+        uri->internal_uri.hostText.first = NULL;
+        uri->internal_uri.hostText.afterLast = NULL;
+    }
+
+    if (uri->modified & MASK_PATH) {
+        g_free(uri->internal_uri.pathHead);
+        uri->internal_uri.pathHead = NULL;
+        uri->internal_uri.pathTail = NULL;
+    }
+
+    uriFreeUriMembersA(&uri->internal_uri);
     uri->initialized = FALSE;
 }
 
@@ -175,8 +195,8 @@ static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSp
 
 static char* str_from_uritextrange(UriTextRangeA range)
 {
-    g_assert_nonnull(range.first);
-    g_assert_nonnull(range.afterLast);
+    g_assert(range.first != NULL);
+    g_assert(range.afterLast != NULL);
 
     ssize_t ptr_len = range.afterLast - range.first;
     g_assert(g_utf8_validate(range.first, ptr_len, NULL));
@@ -185,10 +205,11 @@ static char* str_from_uritextrange(UriTextRangeA range)
 
 static UriTextRangeA uritextrange_from_str(gchar* str)
 {
-    g_assert_nonnull(str);
+    g_assert(str != NULL);
     int len = strlen(str);
+    gchar* dupd = g_strdup(str);
 
-    return (UriTextRangeA) { str, str + len };
+    return (UriTextRangeA) { dupd, dupd + len };
 }
 
 /**
@@ -292,14 +313,17 @@ gchar* upg_uri_get_uri(UpgUri* self)
  */
 gboolean upg_uri_set_scheme(UpgUri* uri, const gchar* nscheme)
 {
-    g_assert(uri->initialized);
-
     if (nscheme == NULL) {
         uri->internal_uri.scheme = (UriTextRangeA) { NULL, NULL };
         return TRUE;
     }
 
-    uri->internal_uri.scheme = uritextrange_from_str(g_strdup(nscheme));
+    if (uri->modified & MASK_SCHEME) {
+        g_free((gchar*)uri->internal_uri.scheme.first);
+    }
+
+    uri->modified |= MASK_SCHEME;
+    uri->internal_uri.scheme = uritextrange_from_str((gchar*)nscheme);
     return TRUE;
 }
 
@@ -405,6 +429,7 @@ const guint8* upg_uri_get_host_data(UpgUri* uri, guint8* protocol)
 gboolean upg_uri_set_host(UpgUri* uri, gchar* host)
 {
     g_assert(uri->initialized);
+    uri->modified |= MASK_HOST;
 
     // FIXME we should probably parse the incoming host to check if it's IPvX
     uri->internal_uri.hostData = (UriHostDataA) { NULL, NULL, { NULL, NULL } };
@@ -467,7 +492,8 @@ gchar* upg_uri_get_path_str(UpgUri* uri)
 
     GString* ret = g_string_new(NULL);
 
-    GList* current = upg_uri_get_path(uri);
+    GList* ocurrent = upg_uri_get_path(uri);
+    GList* current = ocurrent;
     if (current == NULL) {
         return "";
     }
@@ -478,7 +504,7 @@ gchar* upg_uri_get_path_str(UpgUri* uri)
         current = current->next;
     }
 
-    g_list_free_full(current, g_free);
+    g_list_free_full(ocurrent, g_free);
     return g_string_free(ret, FALSE);
 }
 
@@ -495,6 +521,16 @@ gboolean upg_uri_set_path(UpgUri* uri, GList* list)
 {
     gint len = g_list_length(list);
 
+    if (len == 0) {
+        uri->internal_uri.pathHead = NULL;
+        uri->internal_uri.pathTail = NULL;
+        return TRUE;
+    }
+
+    if (uri->modified & MASK_PATH) {
+        g_free(uri->internal_uri.pathHead);
+    }
+
     UriPathSegmentA* segments = g_new0(UriPathSegmentA, len);
     GList* current = list;
     for (gint i = 0; current != NULL; i++) {
@@ -504,6 +540,7 @@ gboolean upg_uri_set_path(UpgUri* uri, GList* list)
     segments[len - 1].next = NULL;
     uri->internal_uri.pathHead = segments;
     uri->internal_uri.pathTail = &segments[len - 1];
+    uri->modified |= MASK_PATH;
 
     return TRUE;
 }
