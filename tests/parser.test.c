@@ -227,6 +227,15 @@ void properties_work()
         g_free(nscheme);
         g_value_unset(&vscheme);
 
+        GValue vhost = G_VALUE_INIT;
+        g_value_init(&vhost, G_TYPE_STRING);
+        g_value_set_static_string(&vhost, "netmetube.com");
+        g_object_set_property(G_OBJECT(uri), "host", &vhost);
+        gchar* nhost = upg_uri_get_host(uri);
+        g_assert_cmpstr(nhost, ==, "netmetube.com");
+        g_free(nhost);
+        g_value_unset(&vhost);
+
         GValue vpath = G_VALUE_INIT;
         g_value_init(&vpath, G_TYPE_POINTER);
         GList* npath = NULL;
