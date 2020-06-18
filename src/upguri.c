@@ -27,7 +27,9 @@ static void upg_uri_finalize(GObject*);
 static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GParamSpec* spec);
 static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSpec* spec);
 static gchar* str_from_uritextrange(UriTextRangeA range);
-static UriTextRangeA uritextrange_from_str(gchar* str);
+static UriTextRangeA uritextrange_from_str(const gchar* str);
+
+#define upg_free_utr(p) g_free((gchar*)p.first)
 
 enum {
     PROP_SCHEME = 1,
@@ -123,13 +125,13 @@ static void upg_uri_dispose(GObject* self)
     UpgUri* uri = G_TYPE_CHECK_INSTANCE_CAST(self, UPG_TYPE_URI, UpgUri);
 
     if (uri->modified & MASK_SCHEME) {
-        g_free((gchar*)uri->internal_uri.scheme.first);
+        upg_free_utr(uri->internal_uri.scheme);
         uri->internal_uri.scheme.first = NULL;
         uri->internal_uri.scheme.afterLast = NULL;
     }
 
     if (uri->modified & MASK_HOST) {
-        g_free((gchar*)uri->internal_uri.hostText.first);
+        upg_free_utr(uri->internal_uri.hostText);
         uri->internal_uri.hostText.first = NULL;
         uri->internal_uri.hostText.afterLast = NULL;
     }
@@ -158,8 +160,7 @@ static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GP
         upg_uri_set_scheme(self, g_value_get_string(value));
         break;
     case PROP_HOST:
-        // FIXME const props
-        upg_uri_set_host(self, (gchar*)g_value_get_string(value));
+        upg_uri_set_host(self, g_value_get_string(value));
         break;
     case PROP_PATH:
         upg_uri_set_path(self, g_value_get_pointer(value));
@@ -203,7 +204,7 @@ static char* str_from_uritextrange(UriTextRangeA range)
     return g_strndup(range.first, ptr_len);
 }
 
-static UriTextRangeA uritextrange_from_str(gchar* str)
+static UriTextRangeA uritextrange_from_str(const gchar* str)
 {
     g_assert(str != NULL);
     int len = strlen(str);
@@ -223,7 +224,7 @@ static UriTextRangeA uritextrange_from_str(gchar* str)
  * Returns: (transfer full) (nullable): a new #UpgUri if the parsing was
  *          successful, or #NULL.
  */
-UpgUri* upg_uri_new(gchar* uri, GError** error)
+UpgUri* upg_uri_new(const gchar* uri, GError** error)
 {
     UpgUri* ret = g_object_new(UPG_TYPE_URI, NULL);
     upg_uri_set_uri(ret, uri);
@@ -319,11 +320,11 @@ gboolean upg_uri_set_scheme(UpgUri* uri, const gchar* nscheme)
     }
 
     if (uri->modified & MASK_SCHEME) {
-        g_free((gchar*)uri->internal_uri.scheme.first);
+        upg_free_utr(uri->internal_uri.scheme);
     }
 
     uri->modified |= MASK_SCHEME;
-    uri->internal_uri.scheme = uritextrange_from_str((gchar*)nscheme);
+    uri->internal_uri.scheme = uritextrange_from_str(nscheme);
     return TRUE;
 }
 
@@ -426,7 +427,7 @@ const guint8* upg_uri_get_host_data(UpgUri* uri, guint8* protocol)
  *
  * Returns: Whether or not the setting succeeded.
  */
-gboolean upg_uri_set_host(UpgUri* uri, gchar* host)
+gboolean upg_uri_set_host(UpgUri* uri, const gchar* host)
 {
     g_assert(uri->initialized);
     uri->modified |= MASK_HOST;
@@ -534,7 +535,7 @@ gboolean upg_uri_set_path(UpgUri* uri, GList* list)
     UriPathSegmentA* segments = g_new0(UriPathSegmentA, len);
     GList* current = list;
     for (gint i = 0; current != NULL; i++) {
-        segments[i] = (UriPathSegmentA) { uritextrange_from_str((gchar*)current->data), &segments[i + 1] };
+        segments[i] = (UriPathSegmentA) { uritextrange_from_str(current->data), &segments[i + 1] };
         current = current->next;
     }
     segments[len - 1].next = NULL;

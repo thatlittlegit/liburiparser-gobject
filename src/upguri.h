@@ -31,14 +31,14 @@ G_BEGIN_DECLS
 #define UPG_TYPE_URI upg_uri_get_type()
 G_DECLARE_FINAL_TYPE(UpgUri, upg_uri, UPG, FILE, GObject)
 
-UpgUri* upg_uri_new(gchar* uri, GError** error);
+UpgUri* upg_uri_new(const gchar* uri, GError** error);
 gboolean upg_uri_set_uri(UpgUri* self, const gchar* nuri);
 gchar* upg_uri_get_uri(UpgUri* self);
 gboolean upg_uri_set_scheme(UpgUri* self, const gchar* nscheme);
 gchar* upg_uri_get_scheme(UpgUri* self);
 gchar* upg_uri_get_host(UpgUri* self);
 const guint8* upg_uri_get_host_data(UpgUri* self, guint8* protocol);
-gboolean upg_uri_set_host(UpgUri* self, gchar* host);
+gboolean upg_uri_set_host(UpgUri* self, const gchar* host);
 GList* upg_uri_get_path(UpgUri* self);
 gchar* upg_uri_get_path_str(UpgUri* self);
 gboolean upg_uri_set_path(UpgUri* self, GList* list);

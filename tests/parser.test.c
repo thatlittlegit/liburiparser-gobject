@@ -58,7 +58,7 @@ void schemes_are_correct()
     FOR_EACH_CASE(tests)
     {
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new((gchar*)tests[i]->uri, &err);
+        UpgUri* uri = upg_uri_new(tests[i]->uri, &err);
 
         g_assert_null(err);
         g_assert_nonnull(uri);
@@ -75,7 +75,7 @@ void can_reset_schemes()
     FOR_EACH_CASE(tests)
     {
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new((gchar*)tests[i]->uri, &err);
+        UpgUri* uri = upg_uri_new(tests[i]->uri, &err);
 
         g_assert_null(err);
         g_assert_nonnull(uri);
@@ -107,7 +107,7 @@ void to_string_is_reparsable()
     FOR_EACH_CASE(tests)
     {
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new((gchar*)tests[i]->uri, &err);
+        UpgUri* uri = upg_uri_new(tests[i]->uri, &err);
         gchar* oscheme = upg_uri_get_scheme(uri);
 
         g_assert_null(err);
@@ -136,7 +136,7 @@ void host_is_correct()
     FOR_EACH_CASE(tests)
     {
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new((gchar*)tests[i]->uri, &err);
+        UpgUri* uri = upg_uri_new(tests[i]->uri, &err);
 
         g_assert_null(err);
         g_assert_nonnull(uri);
@@ -162,7 +162,7 @@ void host_is_resettable()
     FOR_EACH_CASE(tests)
     {
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new((gchar*)tests[i]->uri, &err);
+        UpgUri* uri = upg_uri_new(tests[i]->uri, &err);
 
         g_assert_null(err);
         g_assert_nonnull(uri);
@@ -184,7 +184,7 @@ void properties_work()
     FOR_EACH_CASE(tests)
     {
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new((gchar*)tests[i]->uri, &err);
+        UpgUri* uri = upg_uri_new(tests[i]->uri, &err);
         g_assert_null(err);
         g_assert_nonnull(uri);
 
@@ -249,7 +249,7 @@ void path_segments_are_right()
     FOR_EACH_CASE(tests)
     {
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new((gchar*)tests[i]->uri, &err);
+        UpgUri* uri = upg_uri_new(tests[i]->uri, &err);
         g_assert_null(err);
         g_assert_nonnull(uri);
 
