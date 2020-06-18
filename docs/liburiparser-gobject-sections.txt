@@ -28,3 +28,14 @@ UPG_TYPE_URI
 <SUBSECTION Private>
 upg_uri_get_type
 </SECTION>
+<SECTION>
+<FILE>upgerror</FILE>
+<TITLE>Error Handling</TITLE>
+UPG_ERROR
+UpgError
+<SUBSECTION Standard>
+upg_error_quark
+<SUBSECTION Private>
+upg_strurierror
+__upg_str_from_urierror__
+</SECTION>

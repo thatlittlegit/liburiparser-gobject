@@ -17,6 +17,7 @@
  */
 
 #include "liburiparser-gobject.h"
+#include "upgerror.h"
 #include <uriparser/Uri.h>
 
 struct _UpgUri;
@@ -227,44 +228,45 @@ static UriTextRangeA uritextrange_from_str(const gchar* str)
 UpgUri* upg_uri_new(const gchar* uri, GError** error)
 {
     UpgUri* ret = g_object_new(UPG_TYPE_URI, NULL);
-    upg_uri_set_uri(ret, uri);
-
-    if (ret->initialized) {
-        return ret;
+    GError* err = NULL;
+    if (!upg_uri_set_uri(ret, uri, &err)) {
+        g_object_unref(ret);
+        g_propagate_error(error, err);
+        return NULL;
     }
-
-    g_object_unref(ret);
-    return NULL;
+    return ret;
 }
 
 /**
  * upg_uri_set_uri:
  * @self: The URI object to reset.
  * @nuri: The new textual URI to be parsed.
+ * @error: A #GError.
  *
- * Sets the current URI for the given #UpgUri.
+ * Sets the current URI for the given #UpgUri. If the parsing failed, places a
+ * #GError with more information into @error and returns #FALSE.
+ *
+ * If @nuri is #NULL, then disposes of the object; i.e. the URI is cleared.
  *
  * Returns: Whether or not the operation succeeded.
  */
-gboolean upg_uri_set_uri(UpgUri* self, const gchar* nuri)
+gboolean upg_uri_set_uri(UpgUri* self, const gchar* nuri, GError** error)
 {
-    if (self->initialized) {
-        uriFreeUriMembersA(&self->internal_uri);
-    }
+    g_assert(error == NULL || *error == NULL);
 
-    if (nuri == NULL) {
-        g_info("NULL passed to upg_uri_set_uri, ignoring (this might not work in future!)");
-        return TRUE;
+    if (self->initialized || nuri == NULL) {
+        upg_uri_dispose(G_OBJECT(self));
+
+        if (nuri == NULL) {
+            return TRUE;
+        }
     }
 
     int ret = 0;
-    const gchar* errorPos = NULL;
-    if ((ret = uriParseSingleUriA(&self->internal_uri, nuri, &errorPos)) != URI_SUCCESS) {
-        // FIXME use a GError instead of logging
-        g_warning("Failed to parse URI '%s' (code %d, ep=\"%s\")", nuri, ret, errorPos);
-
-        self->initialized = FALSE;
-        return FALSE;
+    if ((ret = uriParseSingleUriA(&self->internal_uri, nuri, NULL)) != URI_SUCCESS) {
+        g_set_error(error, upg_error_quark(), UPG_ERR_PARSE,
+            "Failed to parse URI: %s", upg_strurierror(ret));
+        return self->initialized = FALSE;
     } else {
         return self->initialized = TRUE;
     }

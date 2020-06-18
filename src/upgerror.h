@@ -1,4 +1,4 @@
-/* upguri.h
+/* upgerror.h
  *
  * Copyright 2020 thatlittlegit <personal@thatlittlegit.tk>
  *
@@ -17,31 +17,44 @@
  *
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
-#ifndef UPGURI_H
-#define UPGURI_H
+#ifndef UPGERROR_H
+#define UPGERROR_H
 
-#include <glib-2.0/glib.h>
+#include <glib.h>
 
 #if !defined(__LIBURIPARSER_GOBJECT_INSIDE__) && !defined(LIBURIPARSER_GOBJECT_COMPILATION)
 #error "Only <liburiparser-gobject.h> can be included directly."
 #endif
 
-G_BEGIN_DECLS
+/**
+ * SECTION: upgerror
+ * @short_description: Error handling with UPG.
+ *
+ * #UpgError et al are the primary ways of reporting errors that aren't your
+ * fault. This is not too interesting: the most interesting thing is probably
+ * #UpgError.
+ */
 
-#define UPG_TYPE_URI upg_uri_get_type()
-G_DECLARE_FINAL_TYPE(UpgUri, upg_uri, UPG, FILE, GObject)
+/**
+ * UpgError:
+ * @UPG_ERR_PARSE: An error occurred during parsing.
+ *
+ * The types of errors that can occur in UPG.
+ */
+typedef enum {
+    UPG_ERR_PARSE,
+} UpgError;
 
-UpgUri* upg_uri_new(const gchar* uri, GError** error);
-gboolean upg_uri_set_uri(UpgUri* self, const gchar* nuri, GError** error);
-gchar* upg_uri_get_uri(UpgUri* self);
-gboolean upg_uri_set_scheme(UpgUri* self, const gchar* nscheme);
-gchar* upg_uri_get_scheme(UpgUri* self);
-gchar* upg_uri_get_host(UpgUri* self);
-const guint8* upg_uri_get_host_data(UpgUri* self, guint8* protocol);
-gboolean upg_uri_set_host(UpgUri* self, const gchar* host);
-GList* upg_uri_get_path(UpgUri* self);
-gchar* upg_uri_get_path_str(UpgUri* self);
-gboolean upg_uri_set_path(UpgUri* self, GList* list);
-G_END_DECLS
+/**
+ * UPG_ERROR:
+ * An alias for upg_error_quark().
+ */
+#define UPG_ERROR upg_error_quark()
+GQuark upg_error_quark();
+
+#ifdef LIBURIPARSER_GOBJECT_COMPILATION
+#define upg_strurierror(ret) __upg_str_from_urierror__(ret)
+gchar* __upg_str_from_urierror__(gint ret);
+#endif
 
 #endif

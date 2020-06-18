@@ -11,6 +11,10 @@ deps = [
   dependency('gobject-2.0', version: '>= 2'),
 ]
 
+add_global_arguments('-DLIBURIPARSER_GOBJECT_COMPILATION',
+  language: 'c',
+)
+
 version_conf = configuration_data()
 version_split = meson.project_version().split('.')
 version_conf.set('VERSION', meson.project_version())

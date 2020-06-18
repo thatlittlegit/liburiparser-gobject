@@ -15,5 +15,6 @@
     <title>API Reference</title>
     <xi:include href="xml/liburiparser-gobjectversion.xml" />
     <xi:include href="xml/upguri.xml" />
+    <xi:include href="xml/upgerror.xml" />
   </chapter>
 </book>

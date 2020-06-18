@@ -46,11 +46,9 @@ void new_returns_instance()
 
 void new_returns_null_on_error()
 {
-    g_test_incomplete("not yet implemented");
-    return;
     GError* error;
     g_assert_null(upg_uri_new("ä", &error));
-    g_assert_nonnull(error);
+    g_assert_error(error, UPG_ERROR, UPG_ERR_PARSE);
 }
 
 void schemes_are_correct()

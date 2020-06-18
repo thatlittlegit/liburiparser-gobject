@@ -6,12 +6,14 @@ liburiparser_gobject_version_h = configure_file(
 
 liburiparser_gobject_sources = [
   'liburiparser-gobject-version.c',
+  'upgerror.c',
   'upguri.c',
 ]
 
 liburiparser_gobject_headers = [
   'liburiparser-gobject.h',
   liburiparser_gobject_version_h,
+  'upgerror.h',
   'upguri.h',
 ]
 
