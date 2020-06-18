@@ -477,7 +477,7 @@ GList* upg_uri_get_path(UpgUri* uri)
 
 /**
  * upg_uri_get_path_str:
- * @uri: The URI to get the stringified path for.
+ * @self: The URI to get the stringified path for.
  *
  * Takes the path data from upg_uri_get_path() and puts it into a string, using
  * slashes as separators.
@@ -518,18 +518,17 @@ gchar* upg_uri_get_path_str(UpgUri* uri)
  *
  * Returns: Whether or not the setting succeeded.
  */
-gboolean upg_uri_set_path(UpgUri* uri, GList* list)
+gboolean upg_uri_set_path(UpgUri* self, GList* list)
 {
-    gint len = g_list_length(list);
-
-    if (len == 0) {
-        uri->internal_uri.pathHead = NULL;
-        uri->internal_uri.pathTail = NULL;
-        return TRUE;
+    if (self->modified & MASK_PATH) {
+        g_free(self->internal_uri.pathHead);
     }
 
-    if (uri->modified & MASK_PATH) {
-        g_free(uri->internal_uri.pathHead);
+    gint len = g_list_length(list);
+    if (len == 0) {
+        self->internal_uri.pathHead = NULL;
+        self->internal_uri.pathTail = NULL;
+        return TRUE;
     }
 
     UriPathSegmentA* segments = g_new0(UriPathSegmentA, len);
@@ -539,9 +538,9 @@ gboolean upg_uri_set_path(UpgUri* uri, GList* list)
         current = current->next;
     }
     segments[len - 1].next = NULL;
-    uri->internal_uri.pathHead = segments;
-    uri->internal_uri.pathTail = &segments[len - 1];
-    uri->modified |= MASK_PATH;
+    self->internal_uri.pathHead = segments;
+    self->internal_uri.pathTail = &segments[len - 1];
+    self->modified |= MASK_PATH;
 
     return TRUE;
 }

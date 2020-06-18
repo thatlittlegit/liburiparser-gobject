@@ -22,6 +22,7 @@ upg_uri_get_host_data
 upg_uri_set_host
 upg_uri_set_path
 upg_uri_get_path
+upg_uri_get_path_str
 <SUBSECTION Standard>
 UPG_TYPE_URI
 <SUBSECTION Private>
