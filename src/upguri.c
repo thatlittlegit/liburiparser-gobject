@@ -363,7 +363,7 @@ gchar* upg_uri_get_host(UpgUri* uri)
 
     if (uri->internal_uri.hostText.first == NULL
         || uri->internal_uri.hostText.afterLast - uri->internal_uri.hostText.first == 0) {
-        return NULL;
+        return g_strdup("");
     }
 
     return str_from_uritextrange(uri->internal_uri.hostText);
@@ -453,7 +453,7 @@ gboolean upg_uri_set_host(UpgUri* uri, gchar* host)
  */
 GList* upg_uri_get_path(UpgUri* uri)
 {
-    if (!uri->initialized) {
+    if (!uri->initialized || uri->internal_uri.pathHead == NULL) {
         return NULL;
     }
 

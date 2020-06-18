@@ -17,6 +17,7 @@
  *
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
+#include "common.h"
 #include <glib.h>
 #include <liburiparser-gobject.h>
 #include <locale.h>
@@ -52,53 +53,17 @@ void new_returns_null_on_error()
     g_assert_nonnull(error);
 }
 
-struct TestUri {
-    gchar* uri;
-    gchar* scheme;
-    gchar* host;
-    gchar* path;
-};
-
-struct TestUri tests[] = {
-    { "https://google.com/search/howsearchworks", "https", "google.com", "/search/howsearchworks" },
-    { "gopher://gopher.floodgap.com/0/gopher/proxy", "gopher", "gopher.floodgap.com", "/0/gopher/proxy" },
-    { "gemini://gemini.circumlunar.space/docs/specification.gmi", "gemini", "gemini.circumlunar.space", "/docs/specification.gmi" },
-    { "data:text/plain;charset=utf-8,hello", "data", NULL, NULL },
-    { "file:///etc/passwd", "file", NULL, "/etc/passwd" },
-    { "http://http.rip", "http", "http.rip", NULL },
-    { "irc://irc.freenode.net", "irc", "irc.freenode.net", NULL },
-    { "geo:39.108889,-76.771389", "geo", NULL, NULL },
-    //{ "ipp:hell", "ipp" }, XXX
-    { "http://127.0.0.1", "http", "127.0.0.1", NULL },
-    { "http://[0000:0000:0000:0000:0000:0000:0000:0000]", "http", "0000:0000:0000:0000:0000:0000:0000:0000", NULL }
-};
-#define TEST_COUNT (sizeof(tests) / sizeof(struct TestUri))
-
-guint8 local_data4[] = { 4, 127, 0, 0, 1 };
-guint8 undef_data6[] = { 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-guint8* hostdatae[] = {
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    local_data4,
-    undef_data6,
-};
-
 void schemes_are_correct()
 {
-    for (int i = 0; i < TEST_COUNT; i++) {
+    FOR_EACH_CASE(tests)
+    {
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new(tests[i].uri, &err);
+        UpgUri* uri = upg_uri_new((gchar*)tests[i]->uri, &err);
 
         g_assert_null(err);
         g_assert_nonnull(uri);
         gchar* scheme = upg_uri_get_scheme(uri);
-        g_assert_cmpstr(scheme, ==, tests[i].scheme);
+        g_assert_cmpstr(scheme, ==, tests[i]->scheme);
 
         g_free(scheme);
         g_object_unref(uri);
@@ -107,9 +72,10 @@ void schemes_are_correct()
 
 void can_reset_schemes()
 {
-    for (int i = 0; i < TEST_COUNT; i++) {
+    FOR_EACH_CASE(tests)
+    {
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new(tests[i].uri, &err);
+        UpgUri* uri = upg_uri_new((gchar*)tests[i]->uri, &err);
 
         g_assert_null(err);
         g_assert_nonnull(uri);
@@ -138,16 +104,17 @@ void can_reset_schemes()
 
 void to_string_is_reparsable()
 {
-    for (int i = 0; i < TEST_COUNT; i++) {
+    FOR_EACH_CASE(tests)
+    {
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new(tests[i].uri, &err);
+        UpgUri* uri = upg_uri_new((gchar*)tests[i]->uri, &err);
         gchar* oscheme = upg_uri_get_scheme(uri);
 
         g_assert_null(err);
         g_assert_nonnull(uri);
 
         gchar* uristr = upg_uri_get_uri(uri);
-        g_assert_cmpstr(uristr, ==, tests[i].uri);
+        g_assert_cmpstr(uristr, ==, tests[i]->uri);
 
         UpgUri* reparsed = upg_uri_new(uristr, &err);
         g_assert_null(err);
@@ -166,22 +133,23 @@ void to_string_is_reparsable()
 
 void host_is_correct()
 {
-    for (int i = 0; i < TEST_COUNT; i++) {
+    FOR_EACH_CASE(tests)
+    {
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new(tests[i].uri, &err);
+        UpgUri* uri = upg_uri_new((gchar*)tests[i]->uri, &err);
 
         g_assert_null(err);
         g_assert_nonnull(uri);
 
         gchar* host = upg_uri_get_host(uri);
-        g_assert_cmpstr(host, ==, tests[i].host);
+        g_assert_cmpstr(host, ==, tests[i]->host);
 
-        if (hostdatae[i] != NULL) {
+        if (tests[i]->hostdata_proto != 0) {
             guint8 protocol;
             const guint8* hostdata = upg_uri_get_host_data(uri, &protocol);
-            g_assert_cmpint(protocol, ==, *hostdatae[i]);
+            g_assert_cmpint(protocol, ==, tests[i]->hostdata_proto);
             gint protodlen = protocol == 4 ? 4 : 16;
-            g_assert_cmpmem(hostdata, protodlen, hostdatae[i] + 1, protodlen);
+            g_assert_cmpmem(hostdata, protodlen, tests[i]->hostdata_data, protodlen);
         }
 
         g_free(host);
@@ -191,9 +159,10 @@ void host_is_correct()
 
 void host_is_resettable()
 {
-    for (int i = 0; i < TEST_COUNT; i++) {
+    FOR_EACH_CASE(tests)
+    {
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new(tests[i].uri, &err);
+        UpgUri* uri = upg_uri_new((gchar*)tests[i]->uri, &err);
 
         g_assert_null(err);
         g_assert_nonnull(uri);
@@ -212,9 +181,10 @@ void host_is_resettable()
 
 void properties_work()
 {
-    for (int i = 0; i < TEST_COUNT; i++) {
+    FOR_EACH_CASE(tests)
+    {
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new(tests[i].uri, &err);
+        UpgUri* uri = upg_uri_new((gchar*)tests[i]->uri, &err);
         g_assert_null(err);
         g_assert_nonnull(uri);
 
@@ -276,27 +246,20 @@ static gboolean compare_lists(GList* list, gchar* wanted_str)
 
 void path_segments_are_right()
 {
-    for (int i = 0; i < TEST_COUNT; i++) {
+    FOR_EACH_CASE(tests)
+    {
         GError* err = NULL;
-        UpgUri* uri = upg_uri_new(tests[i].uri, &err);
+        UpgUri* uri = upg_uri_new((gchar*)tests[i]->uri, &err);
         g_assert_null(err);
         g_assert_nonnull(uri);
 
-        if (tests[i].path == NULL) {
-            g_object_unref(uri);
-            continue; // FIXME data uris, etc. have odd behavior
-            g_assert_null(upg_uri_get_path(uri));
-            gchar* pathstr = upg_uri_get_path_str(uri);
-            g_assert_cmpstr(pathstr, ==, "");
-            g_free(pathstr);
-        }
-
         GList* pathl = upg_uri_get_path(uri);
-        g_assert_true(compare_lists(pathl, tests[i].path));
+        gchar* expected = join_glist(tests[i]->path, '/');
+        g_assert_true(compare_lists(pathl, expected));
         g_list_free_full(pathl, g_free);
 
         gchar* paths = upg_uri_get_path_str(uri);
-        g_assert_cmpstr(paths, ==, tests[i].path);
+        g_assert_cmpstr(paths, ==, expected);
 
         GList* list = NULL;
         list = g_list_append(list, "path");
@@ -334,6 +297,7 @@ int main(int argc, char** argv)
 {
     setlocale(LC_ALL, "");
     g_test_init(&argc, &argv, NULL);
+    get_tests();
 
     g_test_add_func("/urigobj/version-check-accurate", version_check_accurate);
     g_test_add_func("/urigobj/new-returns-instance", new_returns_instance);

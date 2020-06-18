@@ -1,0 +1,70 @@
+[
+    {
+        "uri": "https://google.com/search/howsearchworks",
+        "scheme": "https",
+        "hostname": "google.com",
+        "path": [ "search", "howsearchworks" ],
+        "_": null
+    },
+    {
+        "uri": "gopher://gopher.floodgap.com/0/gopher/proxy",
+        "scheme": "gopher",
+        "hostname": "gopher.floodgap.com",
+        "path": [ "0", "gopher", "proxy" ],
+        "_": null
+    },
+    {
+        "uri": "gemini://gemini.circumlunar.space/docs/specification.gmi",
+        "scheme": "gemini",
+        "hostname": "gemini.circumlunar.space",
+        "path": [ "docs", "specification.gmi" ],
+        "_": null
+    },
+    {
+        "uri": "file:///etc/passwd",
+        "scheme": "file",
+        "hostname": "",
+        "path": [ "etc", "passwd" ],
+        "_": null
+    },
+    {
+        "uri": "http://http.rip",
+        "scheme": "http",
+        "hostname": "http.rip",
+        "path": [],
+        "_": null
+    },
+    {
+        "uri": "irc://irc.freenode.net",
+        "scheme": "irc",
+        "hostname": "irc.freenode.net",
+        "path": [],
+        "_": null
+    },
+    {
+        "uri": "http://127.0.0.1",
+        "scheme": "http",
+        "hostname": "127.0.0.1",
+        "hostdata": {
+            "protocol": 4,
+            "data": [127, 0, 0, 1]
+        },
+        "path": [],
+        "_": null
+    },
+    {
+        "uri": "http://[0000:0000:0000:0000:0000:0000:0000:0000]",
+        "scheme": "http",
+        "hostname": "0000:0000:0000:0000:0000:0000:0000:0000",
+        "hostdata": {
+            "protocol": 6,
+            "data": [
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0
+            ]
+        },
+        "path": [],
+        "_": "currently liburip… expands URIs, and we test for string equality"
+    },
+    null
+]
