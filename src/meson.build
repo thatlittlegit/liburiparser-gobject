@@ -17,7 +17,7 @@ liburiparser_gobject_headers = [
   'upguri.h',
 ]
 
-liburiparser_gobject_lib = shared_library('uriparser-gobject-' + version_split[0],
+liburiparser_gobject_lib = library('uriparser-gobject-' + version_split[0],
   liburiparser_gobject_sources,
   dependencies: deps,
   install: true,
