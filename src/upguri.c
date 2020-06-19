@@ -29,8 +29,10 @@ static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GP
 static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSpec* spec);
 static gchar* str_from_uritextrange(UriTextRangeA range);
 static UriTextRangeA uritextrange_from_str(const gchar* str);
+static void upg_free_upsl_(UriPathSegmentA** segment, UriPathSegmentA** tail);
 
 #define upg_free_utr(p) g_free((gchar*)p.first)
+#define upg_free_upsl(u) upg_free_upsl_(&u.pathHead, &u.pathTail)
 
 enum {
     PROP_SCHEME = 1,
@@ -41,9 +43,9 @@ enum {
 };
 
 enum {
-    MASK_SCHEME = 0,
-    MASK_HOST = 1 << 1,
-    MASK_PATH = 1 << 2,
+    MASK_SCHEME = 1 << 1,
+    MASK_HOST = 1 << 2,
+    MASK_PATH = 1 << 3,
 };
 
 static GParamSpec* params[_N_PROPERTIES_] = { NULL };
@@ -71,6 +73,9 @@ struct _UpgUri {
     gboolean initialized;
     UriUriA internal_uri;
     gint32 modified;
+    UriPathSegmentA* original_segment;
+    UriTextRangeA original_host;
+    UriHostDataA original_hostdata;
 };
 
 G_DEFINE_TYPE(UpgUri, upg_uri, G_TYPE_OBJECT);
@@ -125,6 +130,10 @@ static void upg_uri_dispose(GObject* self)
 
     UpgUri* uri = G_TYPE_CHECK_INSTANCE_CAST(self, UPG_TYPE_URI, UpgUri);
 
+    if (!uri->initialized) {
+        return;
+    }
+
     if (uri->modified & MASK_SCHEME) {
         upg_free_utr(uri->internal_uri.scheme);
         uri->internal_uri.scheme.first = NULL;
@@ -138,11 +147,13 @@ static void upg_uri_dispose(GObject* self)
     }
 
     if (uri->modified & MASK_PATH) {
-        g_free(uri->internal_uri.pathHead);
-        uri->internal_uri.pathHead = NULL;
-        uri->internal_uri.pathTail = NULL;
+        upg_free_upsl(uri->internal_uri);
     }
 
+    uri->modified = 0;
+    uri->internal_uri.pathHead = uri->original_segment;
+    uri->internal_uri.hostText = uri->original_host;
+    uri->internal_uri.hostData = uri->original_hostdata;
     uriFreeUriMembersA(&uri->internal_uri);
     uri->initialized = FALSE;
 }
@@ -214,6 +225,18 @@ static UriTextRangeA uritextrange_from_str(const gchar* str)
     return (UriTextRangeA) { dupd, dupd + len };
 }
 
+static void upg_free_upsl_(UriPathSegmentA** segment, UriPathSegmentA** tail)
+{
+    UriPathSegmentA* current = *segment;
+    do {
+        upg_free_utr(current->text);
+        current = current->next;
+    } while (current != NULL);
+    g_free(*segment);
+    *segment = NULL;
+    *tail = NULL;
+}
+
 /**
  * upg_uri_new:
  * @uri: The input URI to be parsed.
@@ -268,6 +291,9 @@ gboolean upg_uri_set_uri(UpgUri* self, const gchar* nuri, GError** error)
             "Failed to parse URI: %s", upg_strurierror(ret));
         return self->initialized = FALSE;
     } else {
+        self->original_hostdata = self->internal_uri.hostData;
+        self->original_host = self->internal_uri.hostText;
+        self->original_segment = self->internal_uri.pathHead;
         return self->initialized = TRUE;
     }
 }
@@ -316,13 +342,13 @@ gchar* upg_uri_get_uri(UpgUri* self)
  */
 gboolean upg_uri_set_scheme(UpgUri* uri, const gchar* nscheme)
 {
-    if (nscheme == NULL) {
-        uri->internal_uri.scheme = (UriTextRangeA) { NULL, NULL };
-        return TRUE;
-    }
-
-    if (uri->modified & MASK_SCHEME) {
+    if (nscheme == NULL || uri->modified & MASK_SCHEME) {
         upg_free_utr(uri->internal_uri.scheme);
+
+        if (nscheme == NULL) {
+            uri->internal_uri.scheme = (UriTextRangeA) { NULL, NULL };
+            return TRUE;
+        }
     }
 
     uri->modified |= MASK_SCHEME;
@@ -494,11 +520,13 @@ gchar* upg_uri_get_path_str(UpgUri* uri)
     }
 
     GString* ret = g_string_new(NULL);
-
     GList* ocurrent = upg_uri_get_path(uri);
     GList* current = ocurrent;
+
     if (current == NULL) {
-        return "";
+        g_list_free_full(ocurrent, g_free);
+        g_string_free(ret, TRUE);
+        return g_strdup("");
     }
 
     while (current != NULL) {
@@ -523,13 +551,15 @@ gchar* upg_uri_get_path_str(UpgUri* uri)
 gboolean upg_uri_set_path(UpgUri* self, GList* list)
 {
     if (self->modified & MASK_PATH) {
-        g_free(self->internal_uri.pathHead);
+        upg_free_upsl(self->internal_uri);
     }
 
     gint len = g_list_length(list);
     if (len == 0) {
+        upg_free_upsl(self->internal_uri);
         self->internal_uri.pathHead = NULL;
         self->internal_uri.pathTail = NULL;
+        self->modified |= MASK_PATH;
         return TRUE;
     }
 

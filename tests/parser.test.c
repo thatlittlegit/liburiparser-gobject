@@ -46,9 +46,10 @@ void new_returns_instance()
 
 void new_returns_null_on_error()
 {
-    GError* error;
+    GError* error = NULL;
     g_assert_null(upg_uri_new("ä", &error));
     g_assert_error(error, UPG_ERROR, UPG_ERR_PARSE);
+    g_error_free(error);
 }
 
 void schemes_are_correct()
@@ -258,6 +259,8 @@ void path_segments_are_right()
 
         gchar* paths = upg_uri_get_path_str(uri);
         g_assert_cmpstr(paths, ==, expected);
+        g_free(expected);
+        g_free(paths);
 
         GList* list = NULL;
         list = g_list_append(list, "path");
@@ -274,18 +277,6 @@ void path_segments_are_right()
         gchar* sett = upg_uri_get_uri(uri);
         g_assert_nonnull(g_strrstr(sett, "/path/set/successfully"));
         g_free(sett);
-
-        GList* npath = NULL;
-        npath = g_list_append(npath, "path");
-        npath = g_list_append(npath, "changed");
-        upg_uri_set_path(uri, npath);
-        GList* spath = upg_uri_get_path(uri);
-        g_assert_true(compare_lists(spath, "/path/changed"));
-        gchar* tpath = upg_uri_get_path_str(uri);
-        g_assert_cmpstr(tpath, ==, "/path/changed");
-        g_list_free(npath);
-        g_list_free_full(spath, g_free);
-        g_free(tpath);
 
         g_object_unref(uri);
     }
