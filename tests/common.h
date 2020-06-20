@@ -26,6 +26,12 @@ typedef struct {
     guint hostdata_proto;
     guint8 hostdata_data[16];
     GList* path;
+    GHashTable* query;
+    /* the query iteration can potentially be out of order; there's no
+     * requirement (that I know of) to keep them in order. therefore, we keep
+     * track here.
+     */
+    GList* query_order;
 } _Test, *Test;
 
 /*
@@ -41,6 +47,7 @@ gchar* join_glist(GList* list, gchar separator);
 GList* split_to_glist(gchar* str, gchar separator);
 gboolean compare_lists(GList* a, GList* b);
 gboolean compare_list_and_str(GList* a, gchar* b, gchar separator);
+gchar* hash_table_to_str(GList* order, GHashTable* table);
 
 #define FOR_EACH_CASE(x)       \
     Test* tests = get_tests(); \

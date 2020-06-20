@@ -223,6 +223,46 @@ void properties_work()
         g_value_unset(&Rpath);
         g_value_unset(&vpath);
 
+        GValue vquery = G_VALUE_INIT;
+        g_value_init(&vquery, G_TYPE_POINTER);
+        GHashTable* nquery = g_hash_table_new(g_str_hash, g_str_equal);
+        g_hash_table_insert(nquery, "example", "value");
+        g_value_set_pointer(&vquery, nquery);
+        g_object_set_property(G_OBJECT(uri), "query", &vquery);
+        GHashTable* rquery = upg_uri_get_query(uri);
+        g_assert_cmpstr(g_hash_table_lookup(rquery, "example"), ==, "value");
+        GValue Rquery = G_VALUE_INIT;
+        g_object_get_property(G_OBJECT(uri), "query", &Rquery);
+        GHashTable* Rhuery = g_value_get_pointer(&Rquery);
+        g_assert_cmpstr(g_hash_table_lookup(Rhuery, "example"), ==, "value");
+
+        g_hash_table_unref(nquery);
+        g_hash_table_unref(rquery);
+        g_hash_table_unref(Rhuery);
+
+        GValue vqstr = G_VALUE_INIT;
+        g_value_init(&vqstr, G_TYPE_STRING);
+        g_value_set_static_string(&vqstr, "?ababa=aba&caca=non");
+        g_object_set_property(G_OBJECT(uri), "query_str", &vqstr);
+        gchar* rqstr = upg_uri_get_query_str(uri);
+        g_assert_cmpstr(rqstr, ==, "?ababa=aba&caca=non");
+        GValue Vqstr = G_VALUE_INIT;
+        g_object_get_property(G_OBJECT(uri), "query_str", &Vqstr);
+        gchar* Rqstr = (gchar*)g_value_get_string(&Vqstr);
+        g_assert_cmpstr(Rqstr, ==, "?ababa=aba&caca=non");
+        g_assert_cmpstr(Rqstr, ==, rqstr);
+        GValue Vqhtr = G_VALUE_INIT;
+        g_object_get_property(G_OBJECT(uri), "query", &Vqhtr);
+        GHashTable* Rqhtr = g_value_get_pointer(&Vqhtr);
+        g_assert_cmpstr(g_hash_table_lookup(Rqhtr, "ababa"), ==, "aba");
+        g_assert_cmpstr(g_hash_table_lookup(Rqhtr, "caca"), ==, "non");
+
+        g_free(rqstr);
+        g_value_unset(&vqstr);
+        g_value_unset(&Vqstr);
+        g_value_unset(&Vqhtr);
+        g_hash_table_unref(Rqhtr);
+
         g_object_unref(uri);
     }
 }
@@ -266,6 +306,85 @@ void path_segments_are_right()
     }
 }
 
+void query_is_right()
+{
+    FOR_EACH_CASE(tests)
+    {
+        GError* error = NULL;
+        UpgUri* uri = upg_uri_new(tests[i]->uri, &error);
+        g_assert_nonnull(uri);
+        g_assert_null(error);
+
+        if (tests[i]->query == NULL) {
+            g_assert_null(upg_uri_get_query(uri));
+            g_object_unref(uri);
+            continue;
+        }
+
+        gchar* correct_str = hash_table_to_str(tests[i]->query_order, tests[i]->query);
+        gchar* returned_str = upg_uri_get_query_str(uri);
+        g_assert_cmpstr(returned_str, ==, correct_str);
+
+        GHashTable* table = upg_uri_get_query(uri);
+        GHashTableIter iter;
+        g_hash_table_iter_init(&iter, table);
+        gpointer key = NULL, value = NULL;
+        while (g_hash_table_iter_next(&iter, &key, &value)) {
+            g_assert_cmpstr(value, ==, g_hash_table_lookup(tests[i]->query, key));
+        }
+        g_assert_nonnull(table);
+
+        g_free(correct_str);
+        g_free(returned_str);
+        g_hash_table_unref(table);
+
+        g_object_unref(uri);
+    }
+}
+
+void query_is_resettable()
+{
+    FOR_EACH_CASE(tests)
+    {
+        GError* error = NULL;
+        UpgUri* uri = upg_uri_new(tests[i]->uri, &error);
+        g_assert_nonnull(uri);
+        g_assert_null(error);
+
+        GHashTable* new_table = g_hash_table_new(g_str_hash, g_str_equal);
+        g_hash_table_insert(new_table, "a", "b");
+        g_hash_table_insert(new_table, "1234567890", "`1234567890-");
+        GList* new_order = NULL;
+        new_order = g_list_append(new_order, "a");
+        new_order = g_list_append(new_order, "1234567890");
+
+        g_assert_true(upg_uri_set_query(uri, new_table));
+        gchar* new_str = upg_uri_get_query_str(uri);
+        g_assert_nonnull(strstr(new_str, "a=b"));
+        g_assert_nonnull(strstr(new_str, "1234567890=`1234567890-"));
+        GHashTable* new_retd = upg_uri_get_query(uri);
+        gchar* new_retd_str = hash_table_to_str(new_order, new_retd);
+        g_assert_cmpstr(new_retd_str, ==, "?a=b&1234567890=`1234567890-");
+        g_free(new_retd_str);
+        g_assert_cmpstr(g_hash_table_lookup(new_retd, "a"), ==, "b");
+        g_assert_cmpstr(g_hash_table_lookup(new_retd, "1234567890"), ==, "`1234567890-");
+
+        g_assert_true(upg_uri_set_query_str(uri, "?nonono=no"));
+        gchar* sec_str = upg_uri_get_query_str(uri);
+        g_assert_cmpstr(sec_str, ==, "?nonono=no");
+        GHashTable* sec_retd = upg_uri_get_query(uri);
+        g_assert_cmpstr(g_hash_table_lookup(sec_retd, "nonono"), ==, "no");
+
+        g_list_free(new_order);
+        g_hash_table_unref(new_table);
+        g_free(new_str);
+        g_hash_table_unref(new_retd);
+        g_free(sec_str);
+        g_hash_table_unref(sec_retd);
+        g_object_unref(uri);
+    }
+}
+
 int main(int argc, char** argv)
 {
     setlocale(LC_ALL, "");
@@ -282,6 +401,8 @@ int main(int argc, char** argv)
     g_test_add_func("/urigobj/host-is-resettable", host_is_resettable);
     g_test_add_func("/urigobj/properties-work", properties_work);
     g_test_add_func("/urigobj/path-segments-are-right", path_segments_are_right);
+    g_test_add_func("/urigobj/query-is-right", query_is_right);
+    g_test_add_func("/urigobj/query-is-resettable", query_is_resettable);
 
     return g_test_run();
 }

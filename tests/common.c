@@ -74,6 +74,27 @@ Test* get_tests()
             test->path = g_list_append(test->path, g_strdup(json_array_get_string_element(path, i)));
         }
         test->path = g_list_reverse(test->path);
+
+        test->query_order = NULL;
+        if (json_object_has_member(object, "query")) {
+            JsonObject* query = json_object_get_object_member(object, "query");
+
+            GList* members = json_object_get_members(query);
+            gint memberslen = g_list_length(members);
+            test->query = g_hash_table_new(g_str_hash, g_str_equal);
+            for (gint i = 0; i < memberslen; i++) {
+                gchar* current_member = g_strdup(g_list_nth_data(members, i));
+                test->query_order = g_list_prepend(test->query_order, current_member);
+                g_hash_table_insert(test->query,
+                    current_member,
+                    g_strdup(json_object_get_string_member(query, current_member)));
+            }
+            test->query_order = g_list_reverse(test->query_order);
+
+            g_list_free(members);
+        } else {
+            test->query = NULL;
+        }
     }
     tests[arraylen - 1] = NULL;
 
@@ -138,4 +159,33 @@ gboolean compare_list_and_str(GList* a, gchar* b, gchar separator)
     gboolean ret = compare_lists(a, rb);
     g_list_free_full(rb, g_free);
     return ret;
+}
+
+gchar* hash_table_to_str(GList* query_order, GHashTable* table)
+{
+    if (query_order == NULL || table == NULL || g_hash_table_size(table) == 0) {
+        return g_strdup("");
+    }
+
+    GString* output = g_string_new(NULL);
+    g_string_append_c(output, '?');
+
+    gboolean first = TRUE;
+    GList* current = query_order;
+    do {
+        if (!first) {
+            g_string_append_c(output, '&');
+        } else {
+            first = FALSE;
+        }
+
+        g_string_append(output, current->data);
+        gchar* next = g_hash_table_lookup(table, current->data);
+        if (next != NULL) {
+            g_string_append_c(output, '=');
+            g_string_append(output, next);
+        }
+    } while ((current = current->next));
+
+    return g_string_free(output, FALSE);
 }

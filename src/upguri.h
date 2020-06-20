@@ -42,6 +42,10 @@ gboolean upg_uri_set_host(UpgUri* self, const gchar* host);
 GList* upg_uri_get_path(UpgUri* self);
 gchar* upg_uri_get_path_str(UpgUri* self);
 gboolean upg_uri_set_path(UpgUri* self, GList* list);
+GHashTable* upg_uri_get_query(UpgUri* self);
+gchar* upg_uri_get_query_str(UpgUri* self);
+gboolean upg_uri_set_query(UpgUri* self, GHashTable* table);
+gboolean upg_uri_set_query_str(UpgUri* self, const gchar* query);
 G_END_DECLS
 
 #endif

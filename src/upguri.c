@@ -39,6 +39,8 @@ enum {
     PROP_HOST,
     PROP_PATH,
     PROP_PATHSTR,
+    PROP_QUERY,
+    PROP_QUERYSTR,
     _N_PROPERTIES_
 };
 
@@ -46,6 +48,7 @@ enum {
     MASK_SCHEME = 1 << 1,
     MASK_HOST = 1 << 2,
     MASK_PATH = 1 << 3,
+    MASK_QUERY = 1 << 4,
 };
 
 static GParamSpec* params[_N_PROPERTIES_] = { NULL };
@@ -76,6 +79,7 @@ struct _UpgUri {
     UriPathSegmentA* original_segment;
     UriTextRangeA original_host;
     UriHostDataA original_hostdata;
+    UriTextRangeA original_query;
 };
 
 G_DEFINE_TYPE(UpgUri, upg_uri, G_TYPE_OBJECT);
@@ -113,6 +117,20 @@ static void upg_uri_class_init(UpgUriClass* klass)
         "May be settable in future.",
         NULL,
         G_PARAM_READABLE);
+    /**
+     * UpgUri:query: (type GHashTable)
+     *
+     * The query parameters of this URI.
+     */
+    params[PROP_QUERY] = g_param_spec_pointer("query",
+        "Query",
+        "The query parameters of this URI.",
+        G_PARAM_READWRITE);
+    params[PROP_QUERYSTR] = g_param_spec_string("query_str",
+        "Query string",
+        "The query parameters of the URI, as a string",
+        NULL,
+        G_PARAM_READWRITE);
     g_object_class_install_properties(glass, _N_PROPERTIES_, params);
 
     glass->dispose = upg_uri_dispose;
@@ -150,10 +168,17 @@ static void upg_uri_dispose(GObject* self)
         upg_free_upsl(uri->internal_uri);
     }
 
+    if (uri->modified & MASK_QUERY) {
+        upg_free_utr(uri->internal_uri.query);
+        uri->internal_uri.hostText.first = NULL;
+        uri->internal_uri.hostText.afterLast = NULL;
+    }
+
     uri->modified = 0;
     uri->internal_uri.pathHead = uri->original_segment;
     uri->internal_uri.hostText = uri->original_host;
     uri->internal_uri.hostData = uri->original_hostdata;
+    uri->internal_uri.query = uri->original_query;
     uriFreeUriMembersA(&uri->internal_uri);
     uri->initialized = FALSE;
 }
@@ -177,6 +202,12 @@ static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GP
     case PROP_PATH:
         upg_uri_set_path(self, g_value_get_pointer(value));
         break;
+    case PROP_QUERY:
+        upg_uri_set_query(self, g_value_get_pointer(value));
+        break;
+    case PROP_QUERYSTR:
+        upg_uri_set_query_str(self, g_value_get_string(value));
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
         break;
@@ -199,6 +230,12 @@ static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSp
         break;
     case PROP_PATHSTR:
         g_value_set_string(value, upg_uri_get_path_str(self));
+        break;
+    case PROP_QUERY:
+        g_value_set_pointer(value, upg_uri_get_query(self));
+        break;
+    case PROP_QUERYSTR:
+        g_value_take_string(value, upg_uri_get_query_str(self));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
@@ -294,6 +331,7 @@ gboolean upg_uri_set_uri(UpgUri* self, const gchar* nuri, GError** error)
         self->original_hostdata = self->internal_uri.hostData;
         self->original_host = self->internal_uri.hostText;
         self->original_segment = self->internal_uri.pathHead;
+        self->original_query = self->internal_uri.query;
         return self->initialized = TRUE;
     }
 }
@@ -574,5 +612,136 @@ gboolean upg_uri_set_path(UpgUri* self, GList* list)
     self->internal_uri.pathTail = &segments[len - 1];
     self->modified |= MASK_PATH;
 
+    return TRUE;
+}
+
+/**
+ * upg_uri_get_query:
+ * @self: The URI object to get the query of.
+ *
+ * Gets the query parameters as a #GHashTable. If a parameter doesn't have a
+ * value, it is stored as #NULL in the return value. If the query isn't set,
+ * returns #NULL.
+ *
+ * Returns: (transfer full) (nullable): The query parameters.
+ */
+GHashTable* upg_uri_get_query(UpgUri* self)
+{
+    if (self->internal_uri.query.first == NULL
+        || self->internal_uri.query.afterLast == NULL) {
+        return NULL;
+    }
+
+    gchar* query = str_from_uritextrange(self->internal_uri.query);
+    GHashTable* out = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+
+    gchar** chunks = g_strsplit(query, "&", 0);
+    for (gint i = 0; chunks[i] != NULL; i++) {
+        gchar** chunk = g_strsplit(chunks[i], "=", 2);
+        g_hash_table_insert(out, g_strdup(chunk[0]), g_strdup(chunk[1]));
+        g_strfreev(chunk);
+    }
+
+    g_free(query);
+    g_strfreev(chunks);
+    return out;
+}
+
+/**
+ * upg_uri_get_query_str:
+ * @self: The URI object to get the query string of.
+ *
+ * Gets the query parameters as a string, including the first '?'. If the query
+ * isn't set, returns #NULL.
+ *
+ * Returns: (transfer full) (nullable): The query parameters as a string.
+ */
+gchar* upg_uri_get_query_str(UpgUri* self)
+{
+    if (self->internal_uri.query.first == NULL) {
+        return NULL;
+    }
+
+    gchar* str_current = str_from_uritextrange(self->internal_uri.query);
+    GString* ret = g_string_new(str_current);
+    g_string_prepend(ret, "?");
+    g_free(str_current);
+    return g_string_free(ret, FALSE);
+}
+
+/**
+ * upg_uri_set_query:
+ * @self: The URI object to set the query string of.
+ * @table: The new query table.
+ *
+ * Sets the current query parameters to @query.
+ *
+ * Returns: Whether or not the operation was successful.
+ */
+gboolean upg_uri_set_query(UpgUri* self, GHashTable* query)
+{
+    if (query == NULL) {
+        return upg_uri_set_query_str(self, NULL);
+    }
+
+    GString* built = g_string_new(NULL);
+
+    GHashTableIter iter;
+    g_hash_table_iter_init(&iter, query);
+    gpointer key = NULL, value = NULL;
+    gboolean first = TRUE;
+    while (g_hash_table_iter_next(&iter, &key, &value)) {
+        if (first) {
+            first = FALSE;
+        } else {
+            g_string_append_c(built, '&');
+        }
+
+        g_string_append(built, key);
+
+        if (value != NULL) {
+            g_string_append_c(built, '=');
+            g_string_append(built, value);
+        }
+    }
+
+    gchar* final = g_string_free(built, FALSE);
+    upg_uri_set_query_str(self, final);
+    g_free(final);
+
+    return TRUE;
+}
+
+/**
+ * upg_uri_set_query_str:
+ * @self: The URI to set the query string of.
+ * @query: (transfer none): The new query string.
+ *
+ * Sets the query string of @self to @query.
+ */
+gboolean upg_uri_set_query_str(UpgUri* self, const gchar* nq)
+{
+    if (self->modified & MASK_QUERY) {
+        upg_free_utr(self->internal_uri.query);
+    }
+
+    self->modified |= MASK_QUERY;
+
+    if (nq == NULL) {
+        self->internal_uri.query = (UriTextRangeA) { NULL, NULL };
+        return TRUE;
+    }
+
+    gint len = strlen(nq);
+    if ((nq[0] == '?' && len <= 1) || (len == 0)) {
+        self->internal_uri.query = (UriTextRangeA) { NULL, NULL };
+        return TRUE;
+    }
+
+    if (nq[0] == '?') {
+        nq++;
+    }
+
+    self->internal_uri.query = uritextrange_from_str(nq);
     return TRUE;
 }

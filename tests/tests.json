@@ -1,9 +1,12 @@
 [
     {
-        "uri": "https://google.com/search/howsearchworks",
+        "uri": "https://google.com/search/howsearchworks?ga_=01189998819991197253",
         "scheme": "https",
         "hostname": "google.com",
         "path": [ "search", "howsearchworks" ],
+        "query": {
+            "ga_": "01189998819991197253"
+        },
         "_": null
     },
     {
@@ -14,10 +17,16 @@
         "_": null
     },
     {
-        "uri": "gemini://gemini.circumlunar.space/docs/specification.gmi",
+        "uri": "gemini://gemini.circumlunar.space/docs/specification.gmi?a=b&c=d&e=f&g=h",
         "scheme": "gemini",
         "hostname": "gemini.circumlunar.space",
         "path": [ "docs", "specification.gmi" ],
+        "query": {
+            "a": "b",
+            "c": "d",
+            "e": "f",
+            "g": "h"
+        },
         "_": null
     },
     {
@@ -28,10 +37,13 @@
         "_": null
     },
     {
-        "uri": "http://http.rip",
+        "uri": "http://http.rip?oof",
         "scheme": "http",
         "hostname": "http.rip",
         "path": [],
+        "query": {
+            "oof": null
+        },
         "_": null
     },
     {

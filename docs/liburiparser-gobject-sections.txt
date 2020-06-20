@@ -23,6 +23,10 @@ upg_uri_set_host
 upg_uri_set_path
 upg_uri_get_path
 upg_uri_get_path_str
+upg_uri_get_query
+upg_uri_get_query_str
+upg_uri_set_query
+upg_uri_set_query_str
 <SUBSECTION Standard>
 UPG_TYPE_URI
 <SUBSECTION Private>
