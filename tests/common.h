@@ -39,6 +39,8 @@ Test* get_tests();
 
 gchar* join_glist(GList* list, gchar separator);
 GList* split_to_glist(gchar* str, gchar separator);
+gboolean compare_lists(GList* a, GList* b);
+gboolean compare_list_and_str(GList* a, gchar* b, gchar separator);
 
 #define FOR_EACH_CASE(x)       \
     Test* tests = get_tests(); \

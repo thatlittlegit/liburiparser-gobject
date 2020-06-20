@@ -93,3 +93,49 @@ gchar* join_glist(GList* list, gchar separator)
 
     return g_string_free(output, FALSE);
 }
+
+GList* split_to_glist(gchar* string, gchar separator)
+{
+    string++;
+    GList* new_list = NULL;
+
+    gchar* current = string;
+    while (current != NULL) {
+        gchar* next = strchr(current, separator);
+        gchar* nc;
+        if (next) {
+            next++;
+            nc = g_strndup(current, next - current - 1);
+        } else {
+            nc = g_strndup(current, strlen(current));
+        }
+
+        new_list = g_list_prepend(new_list, nc);
+        current = next;
+    }
+
+    new_list = g_list_reverse(new_list);
+    return new_list;
+}
+
+gboolean compare_lists(GList* a, GList* b)
+{
+    gint alen = g_list_length(a);
+    gint blen = g_list_length(b);
+
+    for (int i = 0; i < alen && i < blen; i++) {
+        if (!g_str_equal(g_list_nth_data(a, i), g_list_nth_data(b, i))) {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
+gboolean compare_list_and_str(GList* a, gchar* b, gchar separator)
+{
+    GList* rb = split_to_glist(b, separator);
+    gboolean ret = compare_lists(a, rb);
+    g_list_free_full(rb, g_free);
+    return ret;
+}

@@ -22,8 +22,6 @@
 #include <liburiparser-gobject.h>
 #include <locale.h>
 
-static gboolean compare_lists(GList* list, gchar* slash_separated_expected);
-
 void version_check_accurate()
 {
     g_assert_false(UPG_CHECK_VERSION(UPG_MAJOR_VERSION - 1, 0, 0));
@@ -216,8 +214,8 @@ void properties_work()
         GValue Rpath = G_VALUE_INIT;
         g_object_get_property(G_OBJECT(uri), "path", &Rpath);
         ipath = g_value_get_pointer(&Rpath);
-        g_assert_true(compare_lists(ipath, "/changed"));
-        g_assert_true(compare_lists(rpath, "/changed"));
+        g_assert_true(compare_list_and_str(ipath, "/changed", '/'));
+        g_assert_true(compare_list_and_str(rpath, "/changed", '/'));
 
         g_list_free_full(ipath, g_free);
         g_list_free(npath);
@@ -227,20 +225,6 @@ void properties_work()
 
         g_object_unref(uri);
     }
-}
-
-static gboolean compare_lists(GList* list, gchar* wanted_str)
-{
-    gchar* current = wanted_str + 1;
-    for (int i = 0; i < g_list_length(list); i++) {
-        gchar* next = strchr(current, '/');
-        gchar* nc = g_strndup(current, next ? next - current : strlen(current));
-        g_assert_cmpstr(g_list_nth_data(list, i), ==, nc);
-        g_free(nc);
-        current = strchr(current, '/') + 1;
-    }
-
-    return TRUE;
 }
 
 void path_segments_are_right()
@@ -253,11 +237,11 @@ void path_segments_are_right()
         g_assert_nonnull(uri);
 
         GList* pathl = upg_uri_get_path(uri);
-        gchar* expected = join_glist(tests[i]->path, '/');
-        g_assert_true(compare_lists(pathl, expected));
+        g_assert_true(compare_lists(pathl, tests[i]->path));
         g_list_free_full(pathl, g_free);
 
         gchar* paths = upg_uri_get_path_str(uri);
+        gchar* expected = join_glist(tests[i]->path, '/');
         g_assert_cmpstr(paths, ==, expected);
         g_free(expected);
         g_free(paths);
@@ -269,7 +253,7 @@ void path_segments_are_right()
         upg_uri_set_path(uri, list);
         GList* set = upg_uri_get_path(uri);
         g_list_free(list);
-        g_assert_true(compare_lists(set, "/path/set/successfully"));
+        g_assert_true(compare_list_and_str(set, "/path/set/successfully", '/'));
         g_list_free_full(set, g_free);
         gchar* sets = upg_uri_get_path_str(uri);
         g_assert_cmpstr(sets, ==, "/path/set/successfully");
