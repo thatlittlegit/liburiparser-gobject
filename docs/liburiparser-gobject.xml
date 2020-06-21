@@ -17,4 +17,9 @@
     <xi:include href="xml/upguri.xml" />
     <xi:include href="xml/upgerror.xml" />
   </chapter>
+
+  <chapter>
+    <title>Licenses</title>
+    <xi:include href="lgpl-3.0.xml" />
+  </chapter>
 </book>
