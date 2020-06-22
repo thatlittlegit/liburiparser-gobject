@@ -154,14 +154,10 @@ static void upg_uri_dispose(GObject* self)
 
     if (uri->modified & MASK_SCHEME) {
         upg_free_utr(uri->internal_uri.scheme);
-        uri->internal_uri.scheme.first = NULL;
-        uri->internal_uri.scheme.afterLast = NULL;
     }
 
     if (uri->modified & MASK_HOST) {
         upg_free_utr(uri->internal_uri.hostText);
-        uri->internal_uri.hostText.first = NULL;
-        uri->internal_uri.hostText.afterLast = NULL;
     }
 
     if (uri->modified & MASK_PATH) {
@@ -170,8 +166,6 @@ static void upg_uri_dispose(GObject* self)
 
     if (uri->modified & MASK_QUERY) {
         upg_free_utr(uri->internal_uri.query);
-        uri->internal_uri.hostText.first = NULL;
-        uri->internal_uri.hostText.afterLast = NULL;
     }
 
     uri->modified = 0;
