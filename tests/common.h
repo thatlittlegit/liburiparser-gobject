@@ -18,6 +18,8 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 #include <glib.h>
+#include <liburiparser-gobject.h>
+#include <locale.h>
 
 typedef struct {
     const gchar* uri;
@@ -53,3 +55,14 @@ gchar* hash_table_to_str(GList* order, GHashTable* table);
     Test* tests = get_tests(); \
     gint i = -1;               \
     while (tests[++i])
+
+#define declare_tests                    \
+    static void __register_tests();      \
+    int main(int argc, char** argv)      \
+    {                                    \
+        setlocale(LC_ALL, "");           \
+        g_test_init(&argc, &argv, NULL); \
+        __register_tests();              \
+        return g_test_run();             \
+    }                                    \
+    static void __register_tests()

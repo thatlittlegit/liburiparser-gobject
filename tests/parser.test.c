@@ -18,9 +18,6 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 #include "common.h"
-#include <glib.h>
-#include <liburiparser-gobject.h>
-#include <locale.h>
 
 void version_check_accurate()
 {
@@ -385,12 +382,8 @@ void query_is_resettable()
     }
 }
 
-int main(int argc, char** argv)
+declare_tests
 {
-    setlocale(LC_ALL, "");
-    g_test_init(&argc, &argv, NULL);
-    get_tests();
-
     g_test_add_func("/urigobj/version-check-accurate", version_check_accurate);
     g_test_add_func("/urigobj/new-returns-instance", new_returns_instance);
     g_test_add_func("/urigobj/new-returns-null-on-error", new_returns_null_on_error);
@@ -403,6 +396,4 @@ int main(int argc, char** argv)
     g_test_add_func("/urigobj/path-segments-are-right", path_segments_are_right);
     g_test_add_func("/urigobj/query-is-right", query_is_right);
     g_test_add_func("/urigobj/query-is-resettable", query_is_resettable);
-
-    return g_test_run();
 }
