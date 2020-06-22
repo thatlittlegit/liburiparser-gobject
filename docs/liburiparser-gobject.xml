@@ -9,6 +9,16 @@
   <bookinfo>
     <title>Liburiparser-GObject Reference Manual</title>
     <releaseinfo>for liburiparser-gobject &version;</releaseinfo>
+    <copyright>
+      <year>2020</year> <holder>thatlittlegit</holder>
+    </copyright>
+    <legalnotice>
+      <simpara>
+        This reference manual, and all of the documentation within the code, is
+        licensed under the <link linkend="fdl">GNU Free Documentation License</link>.
+        There are neither front nor back texts, and no invariant sections.
+      </simpara>
+    </legalnotice>
   </bookinfo>
 
   <chapter>
@@ -21,5 +31,6 @@
   <chapter>
     <title>Licenses</title>
     <xi:include href="lgpl-3.0.xml" />
+    <xi:include href="fdl-1.3.xml" />
   </chapter>
 </book>
