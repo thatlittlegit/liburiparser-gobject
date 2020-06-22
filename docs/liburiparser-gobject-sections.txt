@@ -27,6 +27,10 @@ upg_uri_get_query
 upg_uri_get_query_str
 upg_uri_set_query
 upg_uri_set_query_str
+upg_uri_get_fragment
+upg_uri_get_fragment_params
+upg_uri_set_fragment
+upg_uri_set_fragment_params
 <SUBSECTION Standard>
 UPG_TYPE_URI
 <SUBSECTION Private>

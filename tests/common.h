@@ -34,6 +34,8 @@ typedef struct {
      * track here.
      */
     GList* query_order;
+    const gchar* fragment;
+    GHashTable* fragment_params;
 } _Test, *Test;
 
 /*
@@ -50,6 +52,7 @@ GList* split_to_glist(gchar* str, gchar separator);
 gboolean compare_lists(GList* a, GList* b);
 gboolean compare_list_and_str(GList* a, gchar* b, gchar separator);
 gchar* hash_table_to_str(GList* order, GHashTable* table);
+void assert_hash_tables_same(GHashTable* a, GHashTable* b);
 
 #define FOR_EACH_CASE(x)       \
     Test* tests = get_tests(); \

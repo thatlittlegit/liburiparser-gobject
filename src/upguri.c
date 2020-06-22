@@ -41,6 +41,8 @@ enum {
     PROP_PATHSTR,
     PROP_QUERY,
     PROP_QUERYSTR,
+    PROP_FRAGMENT,
+    PROP_FRAGMENTPARAMS,
     _N_PROPERTIES_
 };
 
@@ -49,6 +51,7 @@ enum {
     MASK_HOST = 1 << 2,
     MASK_PATH = 1 << 3,
     MASK_QUERY = 1 << 4,
+    MASK_FRAGMENT = 1 << 5,
 };
 
 static GParamSpec* params[_N_PROPERTIES_] = { NULL };
@@ -80,6 +83,7 @@ struct _UpgUri {
     UriTextRangeA original_host;
     UriHostDataA original_hostdata;
     UriTextRangeA original_query;
+    UriTextRangeA original_fragment;
 };
 
 G_DEFINE_TYPE(UpgUri, upg_uri, G_TYPE_OBJECT);
@@ -131,6 +135,20 @@ static void upg_uri_class_init(UpgUriClass* klass)
         "The query parameters of the URI, as a string",
         NULL,
         G_PARAM_READWRITE);
+    params[PROP_FRAGMENT] = g_param_spec_string("fragment",
+        "Fragment",
+        "The fragment of the URI.",
+        NULL,
+        G_PARAM_READWRITE);
+    /**
+     * UpgUri:fragment_params: (type GHashTable)
+     *
+     * The fragment parameters of the URI.
+     */
+    params[PROP_FRAGMENTPARAMS] = g_param_spec_pointer("fragment_params",
+        "Fragment parameters",
+        "The fragment parameters of the URI.",
+        G_PARAM_READWRITE);
     g_object_class_install_properties(glass, _N_PROPERTIES_, params);
 
     glass->dispose = upg_uri_dispose;
@@ -168,11 +186,16 @@ static void upg_uri_dispose(GObject* self)
         upg_free_utr(uri->internal_uri.query);
     }
 
+    if (uri->modified & MASK_FRAGMENT) {
+        upg_free_utr(uri->internal_uri.fragment);
+    }
+
     uri->modified = 0;
     uri->internal_uri.pathHead = uri->original_segment;
     uri->internal_uri.hostText = uri->original_host;
     uri->internal_uri.hostData = uri->original_hostdata;
     uri->internal_uri.query = uri->original_query;
+    uri->internal_uri.fragment = uri->original_fragment;
     uriFreeUriMembersA(&uri->internal_uri);
     uri->initialized = FALSE;
 }
@@ -202,6 +225,12 @@ static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GP
     case PROP_QUERYSTR:
         upg_uri_set_query_str(self, g_value_get_string(value));
         break;
+    case PROP_FRAGMENT:
+        upg_uri_set_fragment(self, g_value_get_string(value));
+        break;
+    case PROP_FRAGMENTPARAMS:
+        upg_uri_set_fragment_params(self, g_value_get_pointer(value));
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
         break;
@@ -230,6 +259,12 @@ static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSp
         break;
     case PROP_QUERYSTR:
         g_value_take_string(value, upg_uri_get_query_str(self));
+        break;
+    case PROP_FRAGMENT:
+        g_value_take_string(value, upg_uri_get_fragment(self));
+        break;
+    case PROP_FRAGMENTPARAMS:
+        g_value_set_pointer(value, upg_uri_get_fragment_params(self));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
@@ -266,6 +301,21 @@ static void upg_free_upsl_(UriPathSegmentA** segment, UriPathSegmentA** tail)
     g_free(*segment);
     *segment = NULL;
     *tail = NULL;
+}
+
+static GHashTable* parse_query_string(gchar* str)
+{
+    GHashTable* out = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+
+    gchar** chunks = g_strsplit(str, "&", 0);
+    for (gint i = 0; chunks[i] != NULL; i++) {
+        gchar** chunk = g_strsplit(chunks[i], "=", 2);
+        g_hash_table_insert(out, g_strdup(chunk[0]), g_strdup(chunk[1]));
+        g_strfreev(chunk);
+    }
+
+    g_strfreev(chunks);
+    return out;
 }
 
 /**
@@ -326,6 +376,7 @@ gboolean upg_uri_set_uri(UpgUri* self, const gchar* nuri, GError** error)
         self->original_host = self->internal_uri.hostText;
         self->original_segment = self->internal_uri.pathHead;
         self->original_query = self->internal_uri.query;
+        self->original_fragment = self->internal_uri.fragment;
         return self->initialized = TRUE;
     }
 }
@@ -627,18 +678,9 @@ GHashTable* upg_uri_get_query(UpgUri* self)
     }
 
     gchar* query = str_from_uritextrange(self->internal_uri.query);
-    GHashTable* out = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
-
-    gchar** chunks = g_strsplit(query, "&", 0);
-    for (gint i = 0; chunks[i] != NULL; i++) {
-        gchar** chunk = g_strsplit(chunks[i], "=", 2);
-        g_hash_table_insert(out, g_strdup(chunk[0]), g_strdup(chunk[1]));
-        g_strfreev(chunk);
-    }
-
+    GHashTable* ret = parse_query_string(query);
     g_free(query);
-    g_strfreev(chunks);
-    return out;
+    return ret;
 }
 
 /**
@@ -738,4 +780,107 @@ gboolean upg_uri_set_query_str(UpgUri* self, const gchar* nq)
 
     self->internal_uri.query = uritextrange_from_str(nq);
     return TRUE;
+}
+
+/**
+ * upg_uri_get_fragment:
+ * @self: The URI to get the fragment of.
+ *
+ * Gets the fragment of @self, if there is one.
+ *
+ * Returns: (transfer full) (nullable): The fragment of @self.
+ */
+gchar* upg_uri_get_fragment(UpgUri* uri)
+{
+    if (uri->internal_uri.fragment.first == NULL) {
+        return NULL;
+    }
+
+    return str_from_uritextrange(uri->internal_uri.fragment);
+}
+
+/**
+ * upg_uri_get_fragment_params:
+ * @self: The URI to get the fragment parameters of.
+ *
+ * Returns the fragment parameters of @self, if they exist. They follow a syntax
+ * like query parameters, but are in the fragment and not the query.
+ *
+ * Returns: (transfer full) (nullable): The fragment parameters of @self.
+ */
+GHashTable* upg_uri_get_fragment_params(UpgUri* uri)
+{
+    if (uri->internal_uri.fragment.first == NULL) {
+        return NULL;
+    }
+
+    gchar* fragment = str_from_uritextrange(uri->internal_uri.fragment);
+    GHashTable* ret = parse_query_string(fragment);
+    g_free(fragment);
+    return ret;
+}
+
+/**
+ * upg_uri_set_fragment:
+ * @self: The URI to set the fragment of.
+ * @fragment: (transfer none): The new fragment of @self.
+ *
+ * Sets the fragment of @self to @fragment.
+ *
+ * Returns: Whether or not the setting succeeded.
+ */
+gboolean upg_uri_set_fragment(UpgUri* uri, const gchar* fragment)
+{
+    if (uri->modified & MASK_FRAGMENT) {
+        upg_free_utr(uri->internal_uri.fragment);
+    }
+    uri->modified |= MASK_FRAGMENT;
+
+    if (fragment == NULL) {
+        uri->internal_uri.fragment = (UriTextRangeA) { NULL, NULL };
+        return TRUE;
+    }
+
+    uri->internal_uri.fragment = uritextrange_from_str(fragment);
+    return TRUE;
+}
+
+/**
+ * upg_uri_set_fragment_params:
+ * @self: The URI to set the fragment parameters of.
+ * @table: (nullable) (transfer none): The new parameter table.
+ *
+ * Sets the fragment parameters of @self to @params.
+ *
+ * Returns: Whether or not the setting succeeded.
+ */
+gboolean upg_uri_set_fragment_params(UpgUri* uri, GHashTable* params)
+{
+    if (params == NULL) {
+        return upg_uri_set_fragment(uri, NULL);
+    }
+
+    GString* made = g_string_new(NULL);
+
+    GHashTableIter iter;
+    gpointer key = NULL, value = NULL;
+    g_hash_table_iter_init(&iter, params);
+
+    gboolean first = TRUE;
+    while (g_hash_table_iter_next(&iter, &key, &value)) {
+        if (first) {
+            first = FALSE;
+        } else {
+            g_string_append_c(made, '&');
+        }
+
+        g_string_append(made, key);
+        g_string_append_c(made, '=');
+        g_string_append(made, value);
+    }
+
+    gchar* made_str = g_string_free(made, FALSE);
+    gboolean ret = upg_uri_set_fragment(uri, made_str);
+    g_free(made_str);
+    return ret;
 }

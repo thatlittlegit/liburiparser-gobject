@@ -1,11 +1,16 @@
 [
     {
-        "uri": "https://google.com/search/howsearchworks?ga_=01189998819991197253",
+        "uri": "https://google.com/search/howsearchworks?ga_=01189998819991197253#index&params=uhno",
         "scheme": "https",
         "hostname": "google.com",
         "path": [ "search", "howsearchworks" ],
         "query": {
             "ga_": "01189998819991197253"
+        },
+        "fragment": "index&params=uhno",
+        "fragment-params": {
+            "index": null,
+            "params": "uhno"
         },
         "_": null
     },
@@ -17,7 +22,7 @@
         "_": null
     },
     {
-        "uri": "gemini://gemini.circumlunar.space/docs/specification.gmi?a=b&c=d&e=f&g=h",
+        "uri": "gemini://gemini.circumlunar.space/docs/specification.gmi?a=b&c=d&e=f&g=h#4-TLS",
         "scheme": "gemini",
         "hostname": "gemini.circumlunar.space",
         "path": [ "docs", "specification.gmi" ],
@@ -27,6 +32,7 @@
             "e": "f",
             "g": "h"
         },
+        "fragment": "4-TLS",
         "_": null
     },
     {
@@ -37,12 +43,18 @@
         "_": null
     },
     {
-        "uri": "http://http.rip?oof",
+        "uri": "http://http.rip?oof#page=10&test=3&more=ye",
         "scheme": "http",
         "hostname": "http.rip",
         "path": [],
         "query": {
             "oof": null
+        },
+        "fragment": "page=10&test=3&more=ye",
+        "fragment-params": {
+            "page": "10",
+            "test": "3",
+            "more": "ye"
         },
         "_": null
     },

@@ -95,6 +95,28 @@ Test* get_tests()
         } else {
             test->query = NULL;
         }
+
+        if (json_object_has_member(object, "fragment")) {
+            test->fragment = g_strdup(json_object_get_string_member(object, "fragment"));
+        } else {
+            test->fragment = NULL;
+        }
+
+        if (json_object_has_member(object, "fragment-params")) {
+            JsonObject* fragment = json_object_get_object_member(object, "fragment-params");
+
+            GList* members = json_object_get_members(fragment);
+            test->fragment_params = g_hash_table_new(g_str_hash, g_str_equal);
+            GList* current = members;
+            do {
+                g_hash_table_insert(test->fragment_params, g_strdup(current->data),
+                    g_strdup(json_object_get_string_member(fragment, current->data)));
+            } while ((current = current->next));
+
+            g_list_free(members);
+        } else {
+            test->fragment_params = NULL;
+        }
     }
     tests[arraylen - 1] = NULL;
 
@@ -188,4 +210,16 @@ gchar* hash_table_to_str(GList* query_order, GHashTable* table)
     } while ((current = current->next));
 
     return g_string_free(output, FALSE);
+}
+
+void assert_hash_tables_same(GHashTable* a, GHashTable* b)
+{
+    g_assert_cmpuint(g_hash_table_size(a), ==, g_hash_table_size(b));
+
+    GHashTableIter iter;
+    gpointer key = NULL, value = NULL;
+    g_hash_table_iter_init(&iter, a);
+    while (g_hash_table_iter_next(&iter, &key, &value)) {
+        g_assert_cmpstr(value, ==, g_hash_table_lookup(b, key));
+    }
 }

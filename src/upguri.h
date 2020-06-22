@@ -46,6 +46,10 @@ GHashTable* upg_uri_get_query(UpgUri* self);
 gchar* upg_uri_get_query_str(UpgUri* self);
 gboolean upg_uri_set_query(UpgUri* self, GHashTable* table);
 gboolean upg_uri_set_query_str(UpgUri* self, const gchar* query);
+gchar* upg_uri_get_fragment(UpgUri* self);
+GHashTable* upg_uri_get_fragment_params(UpgUri* self);
+gboolean upg_uri_set_fragment(UpgUri* self, const gchar* fragment);
+gboolean upg_uri_set_fragment_params(UpgUri* self, GHashTable* table);
 G_END_DECLS
 
 #endif
