@@ -6,8 +6,8 @@ project('liburiparser-gobject', 'c',
 gnome = import('gnome')
 
 deps = [
-  dependency('liburiparser'),
-  dependency('glib-2.0', version: '>= 2'),
+  dependency('liburiparser', version: '>= 0.9'),
+  dependency('glib-2.0', version: '>= 2.60'),
   dependency('gobject-2.0', version: '>= 2'),
 ]
 
