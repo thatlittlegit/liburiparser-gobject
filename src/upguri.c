@@ -243,7 +243,7 @@ static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSp
 
     switch (id) {
     case PROP_SCHEME:
-        g_value_set_string(value, upg_uri_get_scheme(self));
+        g_value_take_string(value, upg_uri_get_scheme(self));
         break;
     case PROP_HOST:
         g_value_set_string(value, upg_uri_get_host(self));
