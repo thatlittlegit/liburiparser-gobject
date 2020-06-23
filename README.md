@@ -1,4 +1,4 @@
-# liburiparser-gobject
+# liburiparser-gobject ![(github actions badge)](https://github.com/thatlittlegit/liburiparser-gobject/workflows/build/badge.svg)
 
 `liburiparser-gobject` is a
 [GObject](https://developer.gnome.org/gobject/stable/) wrapper over the
