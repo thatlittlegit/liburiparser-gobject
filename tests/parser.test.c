@@ -47,55 +47,6 @@ void new_returns_null_on_error()
     g_error_free(error);
 }
 
-void schemes_are_correct()
-{
-    FOR_EACH_CASE(tests)
-    {
-        GError* err = NULL;
-        UpgUri* uri = upg_uri_new(tests[i]->uri, &err);
-
-        g_assert_null(err);
-        g_assert_nonnull(uri);
-        gchar* scheme = upg_uri_get_scheme(uri);
-        g_assert_cmpstr(scheme, ==, tests[i]->scheme);
-
-        g_free(scheme);
-        g_object_unref(uri);
-    }
-}
-
-void can_reset_schemes()
-{
-    FOR_EACH_CASE(tests)
-    {
-        GError* err = NULL;
-        UpgUri* uri = upg_uri_new(tests[i]->uri, &err);
-
-        g_assert_null(err);
-        g_assert_nonnull(uri);
-
-        gchar* oscheme = upg_uri_get_scheme(uri);
-        upg_uri_set_scheme(uri, "fake");
-        gchar* nscheme = upg_uri_get_scheme(uri);
-        g_assert_cmpstr(nscheme, !=, oscheme);
-        g_assert_cmpstr(nscheme, ==, "fake");
-
-        gchar* tstr = upg_uri_get_uri(uri);
-        g_assert_nonnull(tstr);
-
-        UpgUri* new_uri = upg_uri_new(tstr, &err);
-        gchar* nstr = upg_uri_get_uri(new_uri);
-        g_assert_cmphex((guint64)nstr, ==, (guint64)strstr(nstr, "fake"));
-
-        g_free(oscheme);
-        g_free(nscheme);
-        g_free(tstr);
-        g_free(nstr);
-        g_object_unref(uri);
-        g_object_unref(new_uri);
-    }
-}
-
 void to_string_is_reparsable()
 {
     FOR_EACH_CASE(tests)
@@ -181,15 +132,6 @@ void properties_work()
         UpgUri* uri = upg_uri_new(tests[i]->uri, &err);
         g_assert_null(err);
         g_assert_nonnull(uri);
-
-        GValue vscheme = G_VALUE_INIT;
-        g_value_init(&vscheme, G_TYPE_STRING);
-        g_value_set_static_string(&vscheme, "junk");
-        g_object_set_property(G_OBJECT(uri), "scheme", &vscheme);
-        gchar* nscheme = upg_uri_get_scheme(uri);
-        g_assert_cmpstr(nscheme, ==, "junk");
-        g_free(nscheme);
-        g_value_unset(&vscheme);
 
         GValue vhost = G_VALUE_INIT;
         g_value_init(&vhost, G_TYPE_STRING);
@@ -387,8 +329,6 @@ declare_tests
     g_test_add_func("/urigobj/version-check-accurate", version_check_accurate);
     g_test_add_func("/urigobj/new-returns-instance", new_returns_instance);
     g_test_add_func("/urigobj/new-returns-null-on-error", new_returns_null_on_error);
-    g_test_add_func("/urigobj/schemes-are-correct", schemes_are_correct);
-    g_test_add_func("/urigobj/can-reset-schemes", can_reset_schemes);
     g_test_add_func("/urigobj/to-string-is-reparsable", to_string_is_reparsable);
     g_test_add_func("/urigobj/host-is-correct", host_is_correct);
     g_test_add_func("/urigobj/host-is-resettable", host_is_resettable);

@@ -1,6 +1,7 @@
 tests = [
   'fragments.test.c',
   'parser.test.c',
+  'schemes.test.c',
 ]
 
 foreach test: tests
