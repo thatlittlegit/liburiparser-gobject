@@ -115,7 +115,7 @@ static void upg_uri_class_init(UpgUriClass* klass)
         "Path",
         "The path segments of this object.",
         G_PARAM_READWRITE);
-    params[PROP_PATHSTR] = g_param_spec_string("path_str",
+    params[PROP_PATHSTR] = g_param_spec_string("path-str",
         "Path string",
         "The path segments of this object, represented as a string. "
         "May be settable in future.",
@@ -130,7 +130,7 @@ static void upg_uri_class_init(UpgUriClass* klass)
         "Query",
         "The query parameters of this URI.",
         G_PARAM_READWRITE);
-    params[PROP_QUERYSTR] = g_param_spec_string("query_str",
+    params[PROP_QUERYSTR] = g_param_spec_string("query-str",
         "Query string",
         "The query parameters of the URI, as a string",
         NULL,
@@ -145,7 +145,7 @@ static void upg_uri_class_init(UpgUriClass* klass)
      *
      * The fragment parameters of the URI.
      */
-    params[PROP_FRAGMENTPARAMS] = g_param_spec_pointer("fragment_params",
+    params[PROP_FRAGMENTPARAMS] = g_param_spec_pointer("fragment-params",
         "Fragment parameters",
         "The fragment parameters of the URI.",
         G_PARAM_READWRITE);

@@ -158,7 +158,7 @@ static void change_fragment_params_property_recv_normal()
         GValue value = G_VALUE_INIT;
         g_value_init(&value, G_TYPE_POINTER);
         g_value_set_pointer(&value, new_table);
-        g_object_set_property(G_OBJECT(uri), "fragment_params", &value);
+        g_object_set_property(G_OBJECT(uri), "fragment-params", &value);
 
         GHashTable* retd = upg_uri_get_fragment_params(uri);
         assert_hash_tables_same(retd, new_table);
@@ -183,10 +183,10 @@ static void change_fragment_params_property_recv_property()
         GValue value = G_VALUE_INIT;
         g_value_init(&value, G_TYPE_POINTER);
         g_value_set_pointer(&value, new_table);
-        g_object_set_property(G_OBJECT(uri), "fragment_params", &value);
+        g_object_set_property(G_OBJECT(uri), "fragment-params", &value);
 
         GValue reciever = G_VALUE_INIT;
-        g_object_get_property(G_OBJECT(uri), "fragment_params", &reciever);
+        g_object_get_property(G_OBJECT(uri), "fragment-params", &reciever);
         GHashTable* retd = g_value_get_pointer(&reciever);
         assert_hash_tables_same(retd, new_table);
 
