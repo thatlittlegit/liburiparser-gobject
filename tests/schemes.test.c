@@ -50,8 +50,9 @@ static void change_schemes()
 
 static void get_schemes_property()
 {
-    FOR_EACH_CASE(tests) {
-        UpgUri* uri = upg_uri_new (tests[i]->uri, NULL);
+    FOR_EACH_CASE(tests)
+    {
+        UpgUri* uri = upg_uri_new(tests[i]->uri, NULL);
 
         GValue value = G_VALUE_INIT;
         g_object_get_property(G_OBJECT(uri), "scheme", &value);
@@ -66,43 +67,43 @@ static void get_schemes_property()
 static void change_schemes_property_recv_normal()
 {
     FOR_EACH_CASE(tests)
-        {
-            UpgUri* uri = upg_uri_new(tests[i]->uri, NULL);
+    {
+        UpgUri* uri = upg_uri_new(tests[i]->uri, NULL);
 
-            GValue value = G_VALUE_INIT;
-            g_value_init(&value, G_TYPE_STRING);
-            g_value_set_static_string(&value, "fakescheme");
-            g_object_set_property(G_OBJECT(uri), "scheme", &value);
-            g_value_unset(&value);
+        GValue value = G_VALUE_INIT;
+        g_value_init(&value, G_TYPE_STRING);
+        g_value_set_static_string(&value, "fakescheme");
+        g_object_set_property(G_OBJECT(uri), "scheme", &value);
+        g_value_unset(&value);
 
-            gchar* retd = upg_uri_get_scheme(uri);
-            g_assert_cmpstr(retd, ==, "fakescheme");
-            g_free(retd);
+        gchar* retd = upg_uri_get_scheme(uri);
+        g_assert_cmpstr(retd, ==, "fakescheme");
+        g_free(retd);
 
-            g_object_unref(uri);
-        }
+        g_object_unref(uri);
+    }
 }
 
-static void change_schemes_property_recv_property ()
+static void change_schemes_property_recv_property()
 {
     FOR_EACH_CASE(tests)
-        {
-            UpgUri* uri = upg_uri_new(tests[i]->uri, NULL);
+    {
+        UpgUri* uri = upg_uri_new(tests[i]->uri, NULL);
 
-            GValue value = G_VALUE_INIT;
-            g_value_init(&value, G_TYPE_STRING);
-            g_value_set_static_string(&value, "fakescheme");
-            g_object_set_property(G_OBJECT(uri), "scheme", &value);
-            g_value_unset(&value);
+        GValue value = G_VALUE_INIT;
+        g_value_init(&value, G_TYPE_STRING);
+        g_value_set_static_string(&value, "fakescheme");
+        g_object_set_property(G_OBJECT(uri), "scheme", &value);
+        g_value_unset(&value);
 
-            GValue reciever = G_VALUE_INIT;
-            g_object_get_property(G_OBJECT(uri), "scheme", &reciever);
-            const gchar* retd = g_value_get_string(&reciever);
-            g_assert_cmpstr(retd, ==, "fakescheme");
-            g_value_unset(&reciever);
+        GValue reciever = G_VALUE_INIT;
+        g_object_get_property(G_OBJECT(uri), "scheme", &reciever);
+        const gchar* retd = g_value_get_string(&reciever);
+        g_assert_cmpstr(retd, ==, "fakescheme");
+        g_value_unset(&reciever);
 
-            g_object_unref(uri);
-        }
+        g_object_unref(uri);
+    }
 }
 
 declare_tests
