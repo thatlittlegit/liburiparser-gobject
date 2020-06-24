@@ -33,6 +33,9 @@ upg_uri_set_fragment
 upg_uri_set_fragment_params
 upg_uri_get_port
 upg_uri_set_port
+upg_uri_get_userinfo
+upg_uri_get_username
+upg_uri_set_userinfo
 <SUBSECTION Standard>
 UPG_TYPE_URI
 <SUBSECTION Private>

@@ -3,6 +3,7 @@ tests = [
   'parser.test.c',
   'port.test.c',
   'schemes.test.c',
+  'userinfo.test.c',
 ]
 
 foreach test: tests

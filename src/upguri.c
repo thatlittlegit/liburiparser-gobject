@@ -44,6 +44,8 @@ enum {
     PROP_FRAGMENT,
     PROP_FRAGMENTPARAMS,
     PROP_PORT,
+    PROP_USERINFO,
+    PROP_USERNAME,
     _N_PROPERTIES_
 };
 
@@ -54,6 +56,7 @@ enum {
     MASK_QUERY = 1 << 4,
     MASK_FRAGMENT = 1 << 5,
     MASK_PORT = 1 << 6,
+    MASK_USERINFO = 1 << 7,
 };
 
 static GParamSpec* params[_N_PROPERTIES_] = { NULL };
@@ -87,6 +90,7 @@ struct _UpgUri {
     UriTextRangeA original_query;
     UriTextRangeA original_fragment;
     UriTextRangeA original_port;
+    UriTextRangeA original_userinfo;
 };
 
 G_DEFINE_TYPE(UpgUri, upg_uri, G_TYPE_OBJECT);
@@ -164,6 +168,16 @@ static void upg_uri_class_init(UpgUriClass* klass)
         65535,
         0,
         G_PARAM_READWRITE);
+    params[PROP_USERINFO] = g_param_spec_string("userinfo",
+        "User Information",
+        "The user information of the URI.",
+        NULL,
+        G_PARAM_READWRITE);
+    params[PROP_USERNAME] = g_param_spec_string("username",
+        "User Name",
+        "The username portion of the user information.",
+        NULL,
+        G_PARAM_READABLE);
     g_object_class_install_properties(glass, _N_PROPERTIES_, params);
 
     glass->dispose = upg_uri_dispose;
@@ -209,8 +223,13 @@ static void upg_uri_dispose(GObject* self)
         upg_free_utr(uri->internal_uri.portText);
     }
 
+    if (uri->modified & MASK_USERINFO) {
+        upg_free_utr(uri->internal_uri.userInfo);
+    }
+
     uri->modified = 0;
     uri->internal_uri.pathHead = uri->original_segment;
+    uri->internal_uri.userInfo = uri->original_userinfo;
     uri->internal_uri.hostText = uri->original_host;
     uri->internal_uri.hostData = uri->original_hostdata;
     uri->internal_uri.query = uri->original_query;
@@ -254,6 +273,9 @@ static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GP
     case PROP_PORT:
         upg_uri_set_port(self, g_value_get_uint(value));
         break;
+    case PROP_USERINFO:
+        upg_uri_set_userinfo(self, g_value_get_string(value));
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
         break;
@@ -291,6 +313,12 @@ static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSp
         break;
     case PROP_PORT:
         g_value_set_uint(value, upg_uri_get_port(self));
+        break;
+    case PROP_USERINFO:
+        g_value_take_string(value, upg_uri_get_userinfo(self));
+        break;
+    case PROP_USERNAME:
+        g_value_take_string(value, upg_uri_get_username(self));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
@@ -398,6 +426,7 @@ gboolean upg_uri_set_uri(UpgUri* self, const gchar* nuri, GError** error)
             "Failed to parse URI: %s", upg_strurierror(ret));
         return self->initialized = FALSE;
     } else {
+        self->original_userinfo = self->internal_uri.userInfo;
         self->original_hostdata = self->internal_uri.hostData;
         self->original_host = self->internal_uri.hostText;
         self->original_segment = self->internal_uri.pathHead;
@@ -964,5 +993,71 @@ gboolean upg_uri_set_port(UpgUri* self, guint16 port)
     gchar buf[6];
     g_ascii_dtostr(buf, 6, port);
     self->internal_uri.portText = uritextrange_from_str(buf);
+    return TRUE;
+}
+
+/**
+ * upg_uri_get_userinfo:
+ * @self: The URI to get the user information of.
+ *
+ * Gets the user information of the URI. Returns #NULL if there isn't any.
+ *
+ * Returns: (transfer full) (nullable): The user information of the URI.
+ */
+gchar* upg_uri_get_userinfo(UpgUri* uri)
+{
+    if (uri->internal_uri.userInfo.first == NULL) {
+        return NULL;
+    }
+
+    return str_from_uritextrange(uri->internal_uri.userInfo);
+}
+
+/**
+ * upg_uri_get_username:
+ * @self: The URI to get the user information of.
+ *
+ * Gets the username of the URI; that is, the text before the colon in the user
+ * information. Returns #NULL if there isn't user information: if there is user
+ * information, then at least an empty string will be returned.
+ *
+ * Returns: (transfer full) (nullable): The username of @self.
+ */
+gchar* upg_uri_get_username(UpgUri* uri)
+{
+    if (uri->internal_uri.userInfo.first == NULL) {
+        return NULL;
+    }
+
+    gchar* userinfo = str_from_uritextrange(uri->internal_uri.userInfo);
+    gchar** chunks = g_strsplit(userinfo, ":", 2);
+    gchar* ret = g_strdup(chunks[0]);
+    g_strfreev(chunks);
+    g_free(userinfo);
+    return ret;
+}
+
+/**
+ * upg_uri_set_userinfo:
+ * @self: The URI to set the user information of.
+ * @userinfo: The new user information.
+ *
+ * Sets the user information of @self to @userinfo. If it is set to #NULL, then
+ * it is removed.
+ *
+ * Returns: Whether or not the operation was successful.
+ */
+gboolean upg_uri_set_userinfo(UpgUri* uri, const gchar* userinfo)
+{
+    if (uri->modified & MASK_USERINFO) {
+        upg_free_utr(uri->internal_uri.userInfo);
+    }
+    uri->modified |= MASK_USERINFO;
+
+    if (userinfo == NULL) {
+        uri->internal_uri.userInfo = (UriTextRangeA) { NULL, NULL };
+    }
+
+    uri->internal_uri.userInfo = uritextrange_from_str(userinfo);
     return TRUE;
 }

@@ -1,7 +1,9 @@
 [
     {
-        "uri": "https://google.com/search/howsearchworks?ga_=01189998819991197253#index&params=uhno",
+        "uri": "https://admin@google.com/search/howsearchworks?ga_=01189998819991197253#index&params=uhno",
         "scheme": "https",
+        "userinfo": "admin",
+        "username": "admin",
         "hostname": "google.com",
         "port": 0,
         "path": [ "search", "howsearchworks" ],
@@ -16,8 +18,10 @@
         "_": null
     },
     {
-        "uri": "gopher://gopher.floodgap.com:70/0/gopher/proxy",
+        "uri": "gopher://:test@gopher.floodgap.com:70/0/gopher/proxy",
         "scheme": "gopher",
+        "userinfo": ":test",
+        "username": "",
         "hostname": "gopher.floodgap.com",
         "port": 70,
         "path": [ "0", "gopher", "proxy" ],
@@ -47,8 +51,10 @@
         "_": null
     },
     {
-        "uri": "http://http.rip:80?oof#page=10&test=3&more=ye",
+        "uri": "http://admin:password@http.rip:80?oof#page=10&test=3&more=ye",
         "scheme": "http",
+        "userinfo": "admin:password",
+        "username": "admin",
         "hostname": "http.rip",
         "port": 80,
         "path": [],

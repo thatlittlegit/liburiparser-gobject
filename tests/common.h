@@ -24,6 +24,8 @@
 typedef struct {
     const gchar* uri;
     const gchar* scheme;
+    const gchar* userinfo;
+    const gchar* username;
     const gchar* host;
     guint hostdata_proto;
     guint8 hostdata_data[16];

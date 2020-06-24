@@ -52,6 +52,9 @@ gboolean upg_uri_set_fragment(UpgUri* self, const gchar* fragment);
 gboolean upg_uri_set_fragment_params(UpgUri* self, GHashTable* table);
 guint16 upg_uri_get_port(UpgUri* self);
 gboolean upg_uri_set_port(UpgUri* self, guint16 port);
+gchar* upg_uri_get_userinfo(UpgUri* self);
+gchar* upg_uri_get_username(UpgUri* self);
+gboolean upg_uri_set_userinfo(UpgUri* self, const gchar* userinfo);
 G_END_DECLS
 
 #endif

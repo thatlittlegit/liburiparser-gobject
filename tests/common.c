@@ -52,6 +52,19 @@ Test* get_tests()
 
         test->uri = g_strdup(json_object_get_string_member(object, "uri"));
         test->scheme = g_strdup(json_object_get_string_member(object, "scheme"));
+
+        if (json_object_has_member(object, "userinfo")) {
+            test->userinfo = g_strdup(json_object_get_string_member(object, "userinfo"));
+        } else {
+            test->userinfo = NULL;
+        }
+
+        if (json_object_has_member(object, "username")) {
+            test->username = g_strdup(json_object_get_string_member(object, "username"));
+        } else {
+            test->username = NULL;
+        }
+
         test->host = g_strdup(json_object_get_string_member(object, "hostname"));
         test->port = json_object_get_int_member(object, "port");
 
