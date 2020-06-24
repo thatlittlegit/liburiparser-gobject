@@ -43,6 +43,7 @@ enum {
     PROP_QUERYSTR,
     PROP_FRAGMENT,
     PROP_FRAGMENTPARAMS,
+    PROP_PORT,
     _N_PROPERTIES_
 };
 
@@ -52,6 +53,7 @@ enum {
     MASK_PATH = 1 << 3,
     MASK_QUERY = 1 << 4,
     MASK_FRAGMENT = 1 << 5,
+    MASK_PORT = 1 << 6,
 };
 
 static GParamSpec* params[_N_PROPERTIES_] = { NULL };
@@ -84,6 +86,7 @@ struct _UpgUri {
     UriHostDataA original_hostdata;
     UriTextRangeA original_query;
     UriTextRangeA original_fragment;
+    UriTextRangeA original_port;
 };
 
 G_DEFINE_TYPE(UpgUri, upg_uri, G_TYPE_OBJECT);
@@ -149,6 +152,18 @@ static void upg_uri_class_init(UpgUriClass* klass)
         "Fragment parameters",
         "The fragment parameters of the URI.",
         G_PARAM_READWRITE);
+    /**
+     * UpgUri:port: (type guint16)
+     *
+     * The port of the URI.
+     */
+    params[PROP_PORT] = g_param_spec_uint("port",
+        "Port",
+        "The port of the URI.",
+        0,
+        65535,
+        0,
+        G_PARAM_READWRITE);
     g_object_class_install_properties(glass, _N_PROPERTIES_, params);
 
     glass->dispose = upg_uri_dispose;
@@ -190,12 +205,17 @@ static void upg_uri_dispose(GObject* self)
         upg_free_utr(uri->internal_uri.fragment);
     }
 
+    if (uri->modified & MASK_PORT) {
+        upg_free_utr(uri->internal_uri.portText);
+    }
+
     uri->modified = 0;
     uri->internal_uri.pathHead = uri->original_segment;
     uri->internal_uri.hostText = uri->original_host;
     uri->internal_uri.hostData = uri->original_hostdata;
     uri->internal_uri.query = uri->original_query;
     uri->internal_uri.fragment = uri->original_fragment;
+    uri->internal_uri.portText = uri->original_port;
     uriFreeUriMembersA(&uri->internal_uri);
     uri->initialized = FALSE;
 }
@@ -231,6 +251,9 @@ static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GP
     case PROP_FRAGMENTPARAMS:
         upg_uri_set_fragment_params(self, g_value_get_pointer(value));
         break;
+    case PROP_PORT:
+        upg_uri_set_port(self, g_value_get_uint(value));
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
         break;
@@ -265,6 +288,9 @@ static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSp
         break;
     case PROP_FRAGMENTPARAMS:
         g_value_set_pointer(value, upg_uri_get_fragment_params(self));
+        break;
+    case PROP_PORT:
+        g_value_set_uint(value, upg_uri_get_port(self));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
@@ -377,6 +403,7 @@ gboolean upg_uri_set_uri(UpgUri* self, const gchar* nuri, GError** error)
         self->original_segment = self->internal_uri.pathHead;
         self->original_query = self->internal_uri.query;
         self->original_fragment = self->internal_uri.fragment;
+        self->original_port = self->internal_uri.portText;
         return self->initialized = TRUE;
     }
 }
@@ -883,4 +910,59 @@ gboolean upg_uri_set_fragment_params(UpgUri* uri, GHashTable* params)
     gboolean ret = upg_uri_set_fragment(uri, made_str);
     g_free(made_str);
     return ret;
+}
+
+/**
+ * upg_uri_get_port:
+ * @self: The URI to get the port of.
+ *
+ * Gives the current port number of the URI. If no port number is provided,
+ * returns 0.
+ *
+ * Note that because of it returning zero, there is no way to distinguish
+ * `https://example.edu` and `https://example.edu:0`. It is simply believed that
+ * zero is such a bizarre port, and that is is reserved by IANA, that it should
+ * therefore not be found in any sane URI. Re-parsing the URI manually may be
+ * the only option here, if you must determine the difference.
+ *
+ * Returns: The port of the URI, as a #guint16, or 0 if there isn't one.
+ */
+guint16 upg_uri_get_port(UpgUri* self)
+{
+    if (self->internal_uri.portText.first == NULL) {
+        return 0;
+    }
+
+    gchar* port_str = str_from_uritextrange(self->internal_uri.portText);
+    guint ret = strtoull(port_str, NULL, 10);
+    g_free(port_str);
+    return (guint16)ret;
+}
+
+/**
+ * upg_uri_set_port:
+ * @self: The URI to change.
+ * @port: The new port value.
+ *
+ * Sets the port of @self to @port. There is no way to change the port to 0;
+ * setting the port to zero will remove the port entirely from the URI.
+ *
+ * Returns: Whether or not the operation succeeded.
+ */
+gboolean upg_uri_set_port(UpgUri* self, guint16 port)
+{
+    if (self->modified & MASK_PORT) {
+        upg_free_utr(self->internal_uri.portText);
+    }
+    self->modified |= MASK_PORT;
+
+    if (port == 0) {
+        self->internal_uri.portText = (UriTextRangeA) { NULL, NULL };
+        return TRUE;
+    }
+
+    gchar buf[6];
+    g_ascii_dtostr(buf, 6, port);
+    self->internal_uri.portText = uritextrange_from_str(buf);
+    return TRUE;
 }

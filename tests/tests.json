@@ -3,6 +3,7 @@
         "uri": "https://google.com/search/howsearchworks?ga_=01189998819991197253#index&params=uhno",
         "scheme": "https",
         "hostname": "google.com",
+        "port": 0,
         "path": [ "search", "howsearchworks" ],
         "query": {
             "ga_": "01189998819991197253"
@@ -15,16 +16,18 @@
         "_": null
     },
     {
-        "uri": "gopher://gopher.floodgap.com/0/gopher/proxy",
+        "uri": "gopher://gopher.floodgap.com:70/0/gopher/proxy",
         "scheme": "gopher",
         "hostname": "gopher.floodgap.com",
+        "port": 70,
         "path": [ "0", "gopher", "proxy" ],
         "_": null
     },
     {
-        "uri": "gemini://gemini.circumlunar.space/docs/specification.gmi?a=b&c=d&e=f&g=h#4-TLS",
+        "uri": "gemini://gemini.circumlunar.space:1965/docs/specification.gmi?a=b&c=d&e=f&g=h#4-TLS",
         "scheme": "gemini",
         "hostname": "gemini.circumlunar.space",
+        "port": 1965,
         "path": [ "docs", "specification.gmi" ],
         "query": {
             "a": "b",
@@ -39,13 +42,15 @@
         "uri": "file:///etc/passwd",
         "scheme": "file",
         "hostname": "",
+        "port": 0,
         "path": [ "etc", "passwd" ],
         "_": null
     },
     {
-        "uri": "http://http.rip?oof#page=10&test=3&more=ye",
+        "uri": "http://http.rip:80?oof#page=10&test=3&more=ye",
         "scheme": "http",
         "hostname": "http.rip",
+        "port": 80,
         "path": [],
         "query": {
             "oof": null
@@ -59,9 +64,10 @@
         "_": null
     },
     {
-        "uri": "irc://irc.freenode.net",
+        "uri": "irc://irc.freenode.net:6667",
         "scheme": "irc",
         "hostname": "irc.freenode.net",
+        "port": 6667,
         "path": [],
         "_": null
     },
@@ -69,6 +75,7 @@
         "uri": "http://127.0.0.1",
         "scheme": "http",
         "hostname": "127.0.0.1",
+        "port": 0,
         "hostdata": {
             "protocol": 4,
             "data": [127, 0, 0, 1]
@@ -87,6 +94,7 @@
                 0, 0, 0, 0, 0, 0, 0, 0
             ]
         },
+        "port": 0,
         "path": [],
         "_": "currently liburip… expands URIs, and we test for string equality"
     },

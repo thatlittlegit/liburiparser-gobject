@@ -53,6 +53,7 @@ Test* get_tests()
         test->uri = g_strdup(json_object_get_string_member(object, "uri"));
         test->scheme = g_strdup(json_object_get_string_member(object, "scheme"));
         test->host = g_strdup(json_object_get_string_member(object, "hostname"));
+        test->port = json_object_get_int_member(object, "port");
 
         if (json_object_has_member(object, "hostdata")) {
             JsonObject* hostobj = json_object_get_object_member(object, "hostdata");

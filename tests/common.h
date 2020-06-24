@@ -27,6 +27,7 @@ typedef struct {
     const gchar* host;
     guint hostdata_proto;
     guint8 hostdata_data[16];
+    guint16 port;
     GList* path;
     GHashTable* query;
     /* the query iteration can potentially be out of order; there's no

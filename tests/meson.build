@@ -1,6 +1,7 @@
 tests = [
   'fragments.test.c',
   'parser.test.c',
+  'port.test.c',
   'schemes.test.c',
 ]
 
