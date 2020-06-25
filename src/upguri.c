@@ -34,6 +34,8 @@ static gboolean upg_uri_set_internal_uri(UpgUri* self, void* internal);
 
 #define upg_free_utr(p) g_free((gchar*)p.first)
 #define upg_free_upsl(u) upg_free_upsl_(&u.pathHead, &u.pathTail)
+// Don't use for anything expensive or where a has side effects!
+#define either_or(a, b) ((a) ? (a) : (b))
 
 enum {
     PROP_SCHEME = 1,
@@ -329,8 +331,9 @@ static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSp
 
 static char* str_from_uritextrange(UriTextRangeA range)
 {
-    g_assert(range.first != NULL);
-    g_assert(range.afterLast != NULL);
+    if (range.first == NULL || range.afterLast == NULL) {
+        return NULL;
+    }
 
     ssize_t ptr_len = range.afterLast - range.first;
     g_assert(g_utf8_validate(range.first, ptr_len, NULL));
@@ -360,6 +363,10 @@ static void upg_free_upsl_(UriPathSegmentA** segment, UriPathSegmentA** tail)
 
 static GHashTable* parse_query_string(gchar* str)
 {
+    if (str == NULL) {
+        return NULL;
+    }
+
     GHashTable* out = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
     gchar** chunks = g_strsplit(str, "&", 0);
@@ -530,11 +537,7 @@ gboolean upg_uri_set_scheme(UpgUri* uri, const gchar* nscheme)
  */
 gchar* upg_uri_get_scheme(UpgUri* uri)
 {
-    if (uri->initialized) {
-        return str_from_uritextrange(uri->internal_uri.scheme);
-    }
-
-    return NULL;
+    return str_from_uritextrange(uri->internal_uri.scheme);
 }
 
 /**
@@ -551,13 +554,6 @@ gchar* upg_uri_get_scheme(UpgUri* uri)
  */
 gchar* upg_uri_get_host(UpgUri* uri)
 {
-    g_assert(uri->initialized);
-
-    if (uri->internal_uri.hostText.first == NULL
-        || uri->internal_uri.hostText.afterLast - uri->internal_uri.hostText.first == 0) {
-        return g_strdup("");
-    }
-
     return str_from_uritextrange(uri->internal_uri.hostText);
 }
 
@@ -568,7 +564,7 @@ gchar* upg_uri_get_host(UpgUri* uri)
  *                   protocol.
  *
  * Gets the current host information as an array, with a value indicating the
- * protocol put into @uri.
+ * protocol put into @uri. If @uri hasn't been initialized, returns #NULL.
  *
  * |[<!-- language="C" -->
  * guint8 protocol;
@@ -584,10 +580,8 @@ gchar* upg_uri_get_host(UpgUri* uri)
  *   g_assert_not_reached ();
  * ]|
  *
- * Returns: (transfer none): The host data as an array. Do not modify it! It
- * points directly to an internal data structure's data. (It is also not
- * guaranteed to work like this forever; it won't be a breaking change if this
- * doesn't anymore.)
+ * Returns: (transfer none) (nullable): The host data as an array. Do not modify
+ * or free it!
  */
 const guint8* upg_uri_get_host_data(UpgUri* uri, guint8* protocol)
 {
@@ -752,11 +746,6 @@ gboolean upg_uri_set_path(UpgUri* self, GList* list)
  */
 GHashTable* upg_uri_get_query(UpgUri* self)
 {
-    if (self->internal_uri.query.first == NULL
-        || self->internal_uri.query.afterLast == NULL) {
-        return NULL;
-    }
-
     gchar* query = str_from_uritextrange(self->internal_uri.query);
     GHashTable* ret = parse_query_string(query);
     g_free(query);
@@ -774,10 +763,6 @@ GHashTable* upg_uri_get_query(UpgUri* self)
  */
 gchar* upg_uri_get_query_str(UpgUri* self)
 {
-    if (self->internal_uri.query.first == NULL) {
-        return NULL;
-    }
-
     gchar* str_current = str_from_uritextrange(self->internal_uri.query);
     GString* ret = g_string_new(str_current);
     g_string_prepend(ret, "?");
@@ -872,10 +857,6 @@ gboolean upg_uri_set_query_str(UpgUri* self, const gchar* nq)
  */
 gchar* upg_uri_get_fragment(UpgUri* uri)
 {
-    if (uri->internal_uri.fragment.first == NULL) {
-        return NULL;
-    }
-
     return str_from_uritextrange(uri->internal_uri.fragment);
 }
 
@@ -890,10 +871,6 @@ gchar* upg_uri_get_fragment(UpgUri* uri)
  */
 GHashTable* upg_uri_get_fragment_params(UpgUri* uri)
 {
-    if (uri->internal_uri.fragment.first == NULL) {
-        return NULL;
-    }
-
     gchar* fragment = str_from_uritextrange(uri->internal_uri.fragment);
     GHashTable* ret = parse_query_string(fragment);
     g_free(fragment);
@@ -982,12 +959,8 @@ gboolean upg_uri_set_fragment_params(UpgUri* uri, GHashTable* params)
  */
 guint16 upg_uri_get_port(UpgUri* self)
 {
-    if (self->internal_uri.portText.first == NULL) {
-        return 0;
-    }
-
     gchar* port_str = str_from_uritextrange(self->internal_uri.portText);
-    guint ret = strtoull(port_str, NULL, 10);
+    guint ret = strtoull(either_or(port_str, "0"), NULL, 10);
     g_free(port_str);
     return (guint16)ret;
 }
@@ -1030,10 +1003,6 @@ gboolean upg_uri_set_port(UpgUri* self, guint16 port)
  */
 gchar* upg_uri_get_userinfo(UpgUri* uri)
 {
-    if (uri->internal_uri.userInfo.first == NULL) {
-        return NULL;
-    }
-
     return str_from_uritextrange(uri->internal_uri.userInfo);
 }
 
@@ -1049,12 +1018,8 @@ gchar* upg_uri_get_userinfo(UpgUri* uri)
  */
 gchar* upg_uri_get_username(UpgUri* uri)
 {
-    if (uri->internal_uri.userInfo.first == NULL) {
-        return NULL;
-    }
-
     gchar* userinfo = str_from_uritextrange(uri->internal_uri.userInfo);
-    gchar** chunks = g_strsplit(userinfo, ":", 2);
+    gchar** chunks = g_strsplit(either_or(userinfo, ""), ":", 2);
     gchar* ret = g_strdup(chunks[0]);
     g_strfreev(chunks);
     g_free(userinfo);
