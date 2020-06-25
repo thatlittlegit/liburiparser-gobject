@@ -32,8 +32,8 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE(UpgUri, upg_uri, UPG, FILE, GObject)
 
 UpgUri* upg_uri_new(const gchar* uri, GError** error);
-gboolean upg_uri_set_uri(UpgUri* self, const gchar* nuri, GError** error);
-gchar* upg_uri_get_uri(UpgUri* self);
+gboolean upg_uri_configure_from_string(UpgUri* self, const gchar* nuri, GError** error);
+gchar* upg_uri_to_string(UpgUri* self);
 gboolean upg_uri_set_scheme(UpgUri* self, const gchar* nscheme);
 gchar* upg_uri_get_scheme(UpgUri* self);
 gchar* upg_uri_get_host(UpgUri* self);

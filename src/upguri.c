@@ -30,6 +30,7 @@ static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSp
 static gchar* str_from_uritextrange(UriTextRangeA range);
 static UriTextRangeA uritextrange_from_str(const gchar* str);
 static void upg_free_upsl_(UriPathSegmentA** segment, UriPathSegmentA** tail);
+static gboolean upg_uri_set_internal_uri(UpgUri* self, void* internal);
 
 #define upg_free_utr(p) g_free((gchar*)p.first)
 #define upg_free_upsl(u) upg_free_upsl_(&u.pathHead, &u.pathTail)
@@ -387,7 +388,7 @@ UpgUri* upg_uri_new(const gchar* uri, GError** error)
 {
     UpgUri* ret = g_object_new(UPG_TYPE_URI, NULL);
     GError* err = NULL;
-    if (!upg_uri_set_uri(ret, uri, &err)) {
+    if (!upg_uri_configure_from_string(ret, uri, &err)) {
         g_object_unref(ret);
         g_propagate_error(error, err);
         return NULL;
@@ -396,7 +397,7 @@ UpgUri* upg_uri_new(const gchar* uri, GError** error)
 }
 
 /**
- * upg_uri_set_uri:
+ * upg_uri_configure_from_string:
  * @self: The URI object to reset.
  * @nuri: The new textual URI to be parsed.
  * @error: A #GError.
@@ -408,7 +409,7 @@ UpgUri* upg_uri_new(const gchar* uri, GError** error)
  *
  * Returns: Whether or not the operation succeeded.
  */
-gboolean upg_uri_set_uri(UpgUri* self, const gchar* nuri, GError** error)
+gboolean upg_uri_configure_from_string(UpgUri* self, const gchar* nuri, GError** error)
 {
     g_assert(error == NULL || *error == NULL);
 
@@ -420,33 +421,56 @@ gboolean upg_uri_set_uri(UpgUri* self, const gchar* nuri, GError** error)
         }
     }
 
+    UriUriA parsed;
     int ret = 0;
-    if ((ret = uriParseSingleUriA(&self->internal_uri, nuri, NULL)) != URI_SUCCESS) {
+    if ((ret = uriParseSingleUriA(&parsed, nuri, NULL)) != URI_SUCCESS) {
         g_set_error(error, upg_error_quark(), UPG_ERR_PARSE,
             "Failed to parse URI: %s", upg_strurierror(ret));
-        return self->initialized = FALSE;
     } else {
-        self->original_userinfo = self->internal_uri.userInfo;
-        self->original_hostdata = self->internal_uri.hostData;
-        self->original_host = self->internal_uri.hostText;
-        self->original_segment = self->internal_uri.pathHead;
-        self->original_query = self->internal_uri.query;
-        self->original_fragment = self->internal_uri.fragment;
-        self->original_port = self->internal_uri.portText;
-        return self->initialized = TRUE;
+        upg_uri_set_internal_uri(self, &parsed);
     }
+
+    return self->initialized;
+}
+
+/* [this API may soon be public]
+ * upg_uri_set_internal_uri:
+ * @self: The URI to configure.
+ * @uri: (transfer none) (not nullable): The UriUriA object to use.
+ *
+ * > Avoid this API. It may break in future if the underlying parser is changed,
+ * > or something else happens. This function should still be there, if ABI
+ * > compatibility is a concern, but make sure to check the return value and
+ * > have a backup plan.
+ *
+ * Sets the internal URI object of @self.
+ *
+ * Returns: Whether or not the operation succeeded.
+ */
+static gboolean upg_uri_set_internal_uri(UpgUri* self, void* uri)
+{
+    memcpy(&self->internal_uri, uri, sizeof(UriUriA));
+
+    self->original_userinfo = self->internal_uri.userInfo;
+    self->original_hostdata = self->internal_uri.hostData;
+    self->original_host = self->internal_uri.hostText;
+    self->original_segment = self->internal_uri.pathHead;
+    self->original_query = self->internal_uri.query;
+    self->original_fragment = self->internal_uri.fragment;
+    self->original_port = self->internal_uri.portText;
+
+    return self->initialized = TRUE;
 }
 
 /**
- * upg_uri_get_uri:
- * @self: The URI to get the textual URI of.
+ * upg_uri_to_string:
+ * @self: The URI to convert to a string.
  *
- * Converts the in-memory URI object into a string, in a process called
- * 'recomposition'.
+ * Converts the in-memory URI object into a string.
  *
  * Returns: (transfer full): The textual representation of the URI.
  */
-gchar* upg_uri_get_uri(UpgUri* self)
+gchar* upg_uri_to_string(UpgUri* self)
 {
     g_assert(self->initialized);
 

@@ -58,7 +58,7 @@ void to_string_is_reparsable()
         g_assert_null(err);
         g_assert_nonnull(uri);
 
-        gchar* uristr = upg_uri_get_uri(uri);
+        gchar* uristr = upg_uri_to_string(uri);
         g_assert_cmpstr(uristr, ==, tests[i]->uri);
 
         UpgUri* reparsed = upg_uri_new(uristr, &err);
@@ -237,7 +237,7 @@ void path_segments_are_right()
         gchar* sets = upg_uri_get_path_str(uri);
         g_assert_cmpstr(sets, ==, "/path/set/successfully");
         g_free(sets);
-        gchar* sett = upg_uri_get_uri(uri);
+        gchar* sett = upg_uri_to_string(uri);
         g_assert_nonnull(g_strrstr(sett, "/path/set/successfully"));
         g_free(sett);
 
