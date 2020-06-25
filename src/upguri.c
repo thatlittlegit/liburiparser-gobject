@@ -756,18 +756,14 @@ GHashTable* upg_uri_get_query(UpgUri* self)
  * upg_uri_get_query_str:
  * @self: The URI object to get the query string of.
  *
- * Gets the query parameters as a string, including the first '?'. If the query
+ * Gets the query parameters as a string, excluding the first '?'. If the query
  * isn't set, returns #NULL.
  *
  * Returns: (transfer full) (nullable): The query parameters as a string.
  */
 gchar* upg_uri_get_query_str(UpgUri* self)
 {
-    gchar* str_current = str_from_uritextrange(self->internal_uri.query);
-    GString* ret = g_string_new(str_current);
-    g_string_prepend(ret, "?");
-    g_free(str_current);
-    return g_string_free(ret, FALSE);
+    return str_from_uritextrange(self->internal_uri.query);
 }
 
 /**

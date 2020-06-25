@@ -204,7 +204,6 @@ gchar* hash_table_to_str(GList* query_order, GHashTable* table)
     }
 
     GString* output = g_string_new(NULL);
-    g_string_append_c(output, '?');
 
     gboolean first = TRUE;
     GList* current = query_order;

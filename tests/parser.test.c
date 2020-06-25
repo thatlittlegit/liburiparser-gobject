@@ -184,11 +184,11 @@ void properties_work()
         g_value_set_static_string(&vqstr, "?ababa=aba&caca=non");
         g_object_set_property(G_OBJECT(uri), "query_str", &vqstr);
         gchar* rqstr = upg_uri_get_query_str(uri);
-        g_assert_cmpstr(rqstr, ==, "?ababa=aba&caca=non");
+        g_assert_cmpstr(rqstr, ==, "ababa=aba&caca=non");
         GValue Vqstr = G_VALUE_INIT;
         g_object_get_property(G_OBJECT(uri), "query_str", &Vqstr);
         gchar* Rqstr = (gchar*)g_value_get_string(&Vqstr);
-        g_assert_cmpstr(Rqstr, ==, "?ababa=aba&caca=non");
+        g_assert_cmpstr(Rqstr, ==, "ababa=aba&caca=non");
         g_assert_cmpstr(Rqstr, ==, rqstr);
         GValue Vqhtr = G_VALUE_INIT;
         g_object_get_property(G_OBJECT(uri), "query", &Vqhtr);
@@ -303,14 +303,14 @@ void query_is_resettable()
         g_assert_nonnull(strstr(new_str, "1234567890=`1234567890-"));
         GHashTable* new_retd = upg_uri_get_query(uri);
         gchar* new_retd_str = hash_table_to_str(new_order, new_retd);
-        g_assert_cmpstr(new_retd_str, ==, "?a=b&1234567890=`1234567890-");
+        g_assert_cmpstr(new_retd_str, ==, "a=b&1234567890=`1234567890-");
         g_free(new_retd_str);
         g_assert_cmpstr(g_hash_table_lookup(new_retd, "a"), ==, "b");
         g_assert_cmpstr(g_hash_table_lookup(new_retd, "1234567890"), ==, "`1234567890-");
 
         g_assert_true(upg_uri_set_query_str(uri, "?nonono=no"));
         gchar* sec_str = upg_uri_get_query_str(uri);
-        g_assert_cmpstr(sec_str, ==, "?nonono=no");
+        g_assert_cmpstr(sec_str, ==, "nonono=no");
         GHashTable* sec_retd = upg_uri_get_query(uri);
         g_assert_cmpstr(g_hash_table_lookup(sec_retd, "nonono"), ==, "no");
 
