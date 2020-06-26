@@ -21,6 +21,7 @@
 #define UPGURI_H
 
 #include <glib-2.0/glib.h>
+#include <glib-object.h>
 
 #if !defined(__LIBURIPARSER_GOBJECT_INSIDE__) && !defined(LIBURIPARSER_GOBJECT_COMPILATION)
 #error "Only <liburiparser-gobject.h> can be included directly."
@@ -29,7 +30,12 @@
 G_BEGIN_DECLS
 
 #define UPG_TYPE_URI upg_uri_get_type()
-G_DECLARE_FINAL_TYPE(UpgUri, upg_uri, UPG, FILE, GObject)
+G_DECLARE_DERIVABLE_TYPE(UpgUri, upg_uri, UPG, URI, GObject)
+
+struct _UpgUriClass {
+    GObjectClass* parent_class;
+    gpointer padding[16];
+};
 
 UpgUri* upg_uri_new(const gchar* uri, GError** error);
 gboolean upg_uri_configure_from_string(UpgUri* self, const gchar* nuri, GError** error);
