@@ -23,6 +23,7 @@
 
 typedef struct {
     const gchar* uri;
+    const gchar* nonnormalized;
     const gchar* scheme;
     const gchar* userinfo;
     const gchar* username;

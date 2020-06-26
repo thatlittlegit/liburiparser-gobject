@@ -38,11 +38,13 @@
 /**
  * UpgError:
  * @UPG_ERR_PARSE: An error occurred during parsing.
+ * @UPG_ERR_NORMALIZE: An error occurred during normalization.
  *
  * The types of errors that can occur in UPG.
  */
 typedef enum {
     UPG_ERR_PARSE,
+    UPG_ERR_NORMALIZE,
 } UpgError;
 
 /**

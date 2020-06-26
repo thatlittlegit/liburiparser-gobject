@@ -387,6 +387,10 @@ static GHashTable* parse_query_string(gchar* str)
  * @uri: The input URI to be parsed.
  * @error: A #GError.
  *
+ * > The URI is normalized while it is parsed. You cannot use
+ * > liburiparser-gobject if you need non-normalized URI support; the way that
+ * > normalization works is difficult to achieve with the memory model used.
+ *
  * Creates a new #UpgUri by parsing @uri. Note that @uri must be a valid URI,
  * otherwise it will fail.
  *
@@ -410,6 +414,10 @@ UpgUri* upg_uri_new(const gchar* uri, GError** error)
  * @self: The URI object to reset.
  * @nuri: The new textual URI to be parsed.
  * @error: A #GError.
+ *
+ * > The URI is normalized while it is parsed. You cannot use
+ * > liburiparser-gobject if you need non-normalized URI support; the way that
+ * > normalization works is difficult to achieve with the memory model used.
  *
  * Sets the current URI for the given #UpgUri. If the parsing failed, places a
  * #GError with more information into @error and returns #FALSE.
@@ -435,11 +443,16 @@ gboolean upg_uri_configure_from_string(UpgUri* self, const gchar* nuri, GError**
     if ((ret = uriParseSingleUriA(&parsed, nuri, NULL)) != URI_SUCCESS) {
         g_set_error(error, upg_error_quark(), UPG_ERR_PARSE,
             "Failed to parse URI: %s", upg_strurierror(ret));
-    } else {
-        upg_uri_set_internal_uri(self, &parsed);
+        return FALSE;
     }
 
-    return self->initialized;
+    if ((ret = uriNormalizeSyntaxA(&parsed)) != URI_SUCCESS) {
+        g_set_error(error, upg_error_quark(), UPG_ERR_NORMALIZE,
+            "Failed to normalize URI: %s", upg_strurierror(ret));
+        return FALSE;
+    }
+
+    return upg_uri_set_internal_uri(self, &parsed);
 }
 
 /* [this API may soon be public]

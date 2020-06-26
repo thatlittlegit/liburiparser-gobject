@@ -1,6 +1,7 @@
 [
     {
-        "uri": "https://admin@google.com/search/howsearchworks?ga_=01189998819991197253#index&params=uhno",
+        "uri": "https://admin@google.com/../../search/howsearchworks?ga_=01189998819991197253#index&params=uhno",
+        "normalized": "https://admin@google.com/search/howsearchworks?ga_=01189998819991197253#index&params=uhno",
         "scheme": "https",
         "userinfo": "admin",
         "username": "admin",
@@ -18,7 +19,8 @@
         "_": null
     },
     {
-        "uri": "gopher://:test@gopher.floodgap.com:70/0/gopher/proxy",
+        "uri": "gopher://:test@gopher.floodgap.com:70/100/fake/uri/../../../0/gopher/proxy",
+        "normalized": "gopher://:test@gopher.floodgap.com:70/0/gopher/proxy",
         "scheme": "gopher",
         "userinfo": ":test",
         "username": "",
@@ -28,7 +30,8 @@
         "_": null
     },
     {
-        "uri": "gemini://gemini.circumlunar.space:1965/docs/specification.gmi?a=b&c=d&e=f&g=h#4-TLS",
+        "uri": "gemini://gemini.circumlunar.space:1965/software/../docs/specification.gmi?a=b&c=d&e=f&g=h#4-TLS",
+        "normalized": "gemini://gemini.circumlunar.space:1965/docs/specification.gmi?a=b&c=d&e=f&g=h#4-TLS",
         "scheme": "gemini",
         "hostname": "gemini.circumlunar.space",
         "port": 1965,
@@ -44,6 +47,7 @@
     },
     {
         "uri": "file:///etc/passwd",
+        "normalized": "file:///etc/passwd",
         "scheme": "file",
         "hostname": "",
         "port": 0,
@@ -52,6 +56,7 @@
     },
     {
         "uri": "http://admin:password@http.rip:80?oof#page=10&test=3&more=ye",
+        "normalized": "http://admin:password@http.rip:80?oof#page=10&test=3&more=ye",
         "scheme": "http",
         "userinfo": "admin:password",
         "username": "admin",
@@ -71,6 +76,7 @@
     },
     {
         "uri": "irc://irc.freenode.net:6667",
+        "normalized": "irc://irc.freenode.net:6667",
         "scheme": "irc",
         "hostname": "irc.freenode.net",
         "port": 6667,
@@ -79,6 +85,7 @@
     },
     {
         "uri": "http://127.0.0.1",
+        "normalized": "http://127.0.0.1",
         "scheme": "http",
         "hostname": "127.0.0.1",
         "port": 0,
@@ -91,6 +98,7 @@
     },
     {
         "uri": "http://[0000:0000:0000:0000:0000:0000:0000:0000]",
+        "normalized": "http://[0000:0000:0000:0000:0000:0000:0000:0000]",
         "scheme": "http",
         "hostname": "0000:0000:0000:0000:0000:0000:0000:0000",
         "hostdata": {

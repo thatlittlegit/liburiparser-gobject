@@ -50,7 +50,9 @@ Test* get_tests()
         Test test = g_new0(_Test, 1);
         tests[i] = test;
 
-        test->uri = g_strdup(json_object_get_string_member(object, "uri"));
+        test->uri = g_strdup(json_object_get_string_member(object, "normalized"));
+        test->nonnormalized = g_strdup(json_object_get_string_member(object, "uri"));
+
         test->scheme = g_strdup(json_object_get_string_member(object, "scheme"));
 
         if (json_object_has_member(object, "userinfo")) {

@@ -47,6 +47,20 @@ void new_returns_null_on_error()
     g_error_free(error);
 }
 
+void are_normalized()
+{
+    FOR_EACH_CASE(tests)
+    {
+        UpgUri* uri = upg_uri_new(tests[i]->nonnormalized, NULL);
+
+        gchar* retd = upg_uri_to_string(uri);
+        g_assert_cmpstr(retd, ==, tests[i]->uri);
+
+        g_free(retd);
+        g_object_unref(uri);
+    }
+}
+
 void to_string_is_reparsable()
 {
     FOR_EACH_CASE(tests)
@@ -329,6 +343,7 @@ declare_tests
     g_test_add_func("/urigobj/version-check-accurate", version_check_accurate);
     g_test_add_func("/urigobj/new-returns-instance", new_returns_instance);
     g_test_add_func("/urigobj/new-returns-null-on-error", new_returns_null_on_error);
+    g_test_add_func("/urigobj/are-normalized", are_normalized);
     g_test_add_func("/urigobj/to-string-is-reparsable", to_string_is_reparsable);
     g_test_add_func("/urigobj/host-is-correct", host_is_correct);
     g_test_add_func("/urigobj/host-is-resettable", host_is_resettable);
