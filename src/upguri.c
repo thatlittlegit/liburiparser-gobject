@@ -596,22 +596,25 @@ gchar* upg_uri_get_host(UpgUri* uri)
  *   g_assert_not_reached ();
  * ]|
  *
- * Returns: (transfer none) (nullable): The host data as an array. Do not modify
- * or free it!
+ * Returns: (transfer full) (nullable): The host data as an array.
  */
-const guint8* upg_uri_get_host_data(UpgUri* uri, guint8* protocol)
+guint8* upg_uri_get_host_data(UpgUri* uri, guint8* protocol)
 {
     g_assert(uri->initialized);
 
     UriHostDataA* data = &uri->internal_uri.hostData;
     if (data->ip4 != NULL) {
         *protocol = 4;
-        return data->ip4->data;
+        void* ret = g_malloc0(4);
+        memcpy(ret, data->ip4->data, 4);
+        return ret;
     }
 
     if (data->ip6 != NULL) {
         *protocol = 6;
-        return data->ip6->data;
+        void* ret = g_malloc0(16);
+        memcpy(ret, data->ip6->data, 16);
+        return ret;
     }
 
     return NULL;

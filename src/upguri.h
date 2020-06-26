@@ -37,7 +37,7 @@ gchar* upg_uri_to_string(UpgUri* self);
 gboolean upg_uri_set_scheme(UpgUri* self, const gchar* nscheme);
 gchar* upg_uri_get_scheme(UpgUri* self);
 gchar* upg_uri_get_host(UpgUri* self);
-const guint8* upg_uri_get_host_data(UpgUri* self, guint8* protocol);
+guint8* upg_uri_get_host_data(UpgUri* self, guint8* protocol);
 gboolean upg_uri_set_host(UpgUri* self, const gchar* host);
 GList* upg_uri_get_path(UpgUri* self);
 gchar* upg_uri_get_path_str(UpgUri* self);

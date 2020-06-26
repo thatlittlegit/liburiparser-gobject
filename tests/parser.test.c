@@ -105,10 +105,11 @@ void host_is_correct()
 
         if (tests[i]->hostdata_proto != 0) {
             guint8 protocol;
-            const guint8* hostdata = upg_uri_get_host_data(uri, &protocol);
+            guint8* hostdata = upg_uri_get_host_data(uri, &protocol);
             g_assert_cmpint(protocol, ==, tests[i]->hostdata_proto);
             gint protodlen = protocol == 4 ? 4 : 16;
             g_assert_cmpmem(hostdata, protodlen, tests[i]->hostdata_data, protodlen);
+            g_free(hostdata);
         }
 
         g_free(host);
