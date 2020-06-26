@@ -94,6 +94,7 @@ struct _UpgUri {
     UriTextRangeA original_fragment;
     UriTextRangeA original_port;
     UriTextRangeA original_userinfo;
+    UriTextRangeA original_scheme;
 };
 
 G_DEFINE_TYPE(UpgUri, upg_uri, G_TYPE_OBJECT);
@@ -231,6 +232,7 @@ static void upg_uri_dispose(GObject* self)
     }
 
     uri->modified = 0;
+    uri->internal_uri.scheme = uri->original_scheme;
     uri->internal_uri.pathHead = uri->original_segment;
     uri->internal_uri.userInfo = uri->original_userinfo;
     uri->internal_uri.hostText = uri->original_host;
@@ -458,6 +460,7 @@ static gboolean upg_uri_set_internal_uri(UpgUri* self, void* uri)
 {
     memcpy(&self->internal_uri, uri, sizeof(UriUriA));
 
+    self->original_scheme = self->internal_uri.scheme;
     self->original_userinfo = self->internal_uri.userInfo;
     self->original_hostdata = self->internal_uri.hostData;
     self->original_host = self->internal_uri.hostText;
@@ -512,16 +515,16 @@ gchar* upg_uri_to_string(UpgUri* self)
  */
 gboolean upg_uri_set_scheme(UpgUri* uri, const gchar* nscheme)
 {
-    if (nscheme == NULL || uri->modified & MASK_SCHEME) {
+    if (uri->modified & MASK_SCHEME) {
         upg_free_utr(uri->internal_uri.scheme);
+    }
+    uri->modified |= MASK_SCHEME;
 
-        if (nscheme == NULL) {
-            uri->internal_uri.scheme = (UriTextRangeA) { NULL, NULL };
-            return TRUE;
-        }
+    if (nscheme == NULL) {
+        uri->internal_uri.scheme = (UriTextRangeA) { NULL, NULL };
+        return TRUE;
     }
 
-    uri->modified |= MASK_SCHEME;
     uri->internal_uri.scheme = uritextrange_from_str(nscheme);
     return TRUE;
 }
