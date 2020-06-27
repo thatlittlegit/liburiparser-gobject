@@ -36,6 +36,8 @@ upg_uri_set_port
 upg_uri_get_userinfo
 upg_uri_get_username
 upg_uri_set_userinfo
+upg_uri_apply_reference
+upg_uri_subtract_to_reference
 <SUBSECTION Standard>
 UPG_TYPE_URI
 <SUBSECTION Private>

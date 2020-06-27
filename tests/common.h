@@ -24,6 +24,10 @@
 typedef struct {
     const gchar* uri;
     const gchar* nonnormalized;
+    const gchar* relative; /* with reference of
+                            * '../1/../2/aaaa/bbbb/cccc/../file' applied
+                            * (or '../2/aaaa/bbbb/file')
+                            */
     const gchar* scheme;
     const gchar* userinfo;
     const gchar* username;

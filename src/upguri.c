@@ -1092,3 +1092,82 @@ gboolean upg_uri_set_userinfo(UpgUri* _self, const gchar* userinfo)
     uri->internal_uri.userInfo = uritextrange_from_str(userinfo);
     return TRUE;
 }
+
+/**
+ * upg_uri_apply_reference:
+ * @self: The URI to use as a base.
+ * @reference: The reference to apply to @self.
+ * @error: A #GError.
+ *
+ * Applies @reference to @self and returns the new URI.
+ *
+ * Returns: (transfer full) (nullable): The applied URI, or #NULL if @error is
+ *          set.
+ */
+UpgUri* upg_uri_apply_reference(UpgUri* self, const gchar* reference_str, GError** error)
+{
+    UpgUri* final = NULL;
+
+    UriUriA reference;
+    gint ret;
+    if ((ret = uriParseSingleUriA(&reference, reference_str, NULL)) != URI_SUCCESS) {
+        g_set_error(error, UPG_ERROR, UPG_ERR_PARSE, "Failed to parse reference: %s", upg_strurierror(ret));
+        return final;
+    }
+
+    UriUriA* base = &priv(self)->internal_uri;
+    UriUriA applied;
+    if ((ret = uriAddBaseUriA(&applied, &reference, base)) != URI_SUCCESS) {
+        g_set_error(error, UPG_ERROR, UPG_ERR_REFERENCE, "Failed to apply reference: %s", upg_strurierror(ret));
+        goto cleanup;
+    }
+
+    if ((ret = uriNormalizeSyntaxA(&applied)) != URI_SUCCESS) {
+        g_set_error(error, UPG_ERROR, UPG_ERR_NORMALIZE, "Failed to normalize applied URI: %s", upg_strurierror(ret));
+        goto cleanup;
+    }
+
+    final = upg_uri_new(NULL, error);
+    if (final == NULL) {
+        goto cleanup;
+    }
+
+    upg_uri_set_internal_uri(final, &applied);
+
+cleanup:
+    uriFreeUriMembersA(&reference);
+
+    return final;
+}
+
+/**
+ * upg_uri_subtract_to_reference:
+ * @self: The minutend.
+ * @subtrahend: The subtrahend (to be subtracted from @self).
+ * @error: A #GError.
+ *
+ * Subtracts @subtrahend from @self to give a reference that can be used on
+ * @self to get @subtrahend. The resulting value should be relative, but if the
+ * scheme and hostname differ then it could very well be absolute.
+ *
+ * If @error is set, returns #NULL.
+ *
+ * Returns: (transfer full) (nullable): The subtracted reference.
+ */
+gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** err)
+{
+    UriUriA* base = &priv(self)->internal_uri;
+    UriUriA* source = &priv(subtrahend)->internal_uri;
+
+    UriUriA dest;
+    gint ret;
+
+    if ((ret = uriRemoveBaseUriA(&dest, source, base, FALSE)) != URI_SUCCESS) {
+        g_set_error(err, UPG_ERROR, UPG_ERR_REFERENCE, "Failed to create reference: %s", upg_strurierror(ret));
+        return NULL;
+    }
+
+    gchar* final = upg_uriuri_to_string(&dest);
+    uriFreeUriMembersA(&dest);
+    return final;
+}

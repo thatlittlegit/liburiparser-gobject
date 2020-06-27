@@ -61,6 +61,8 @@ gboolean upg_uri_set_port(UpgUri* self, guint16 port);
 gchar* upg_uri_get_userinfo(UpgUri* self);
 gchar* upg_uri_get_username(UpgUri* self);
 gboolean upg_uri_set_userinfo(UpgUri* self, const gchar* userinfo);
+UpgUri* upg_uri_apply_reference(UpgUri* self, const gchar* reference, GError** error);
+gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** error);
 G_END_DECLS
 
 #endif

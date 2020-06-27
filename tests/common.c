@@ -52,6 +52,7 @@ Test* get_tests()
 
         test->uri = g_strdup(json_object_get_string_member(object, "normalized"));
         test->nonnormalized = g_strdup(json_object_get_string_member(object, "uri"));
+        test->relative = g_strdup(json_object_get_string_member(object, "relative"));
 
         test->scheme = g_strdup(json_object_get_string_member(object, "scheme"));
 

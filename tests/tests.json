@@ -2,6 +2,7 @@
     {
         "uri": "https://admin@google.com/../../search/howsearchworks?ga_=01189998819991197253#index&params=uhno",
         "normalized": "https://admin@google.com/search/howsearchworks?ga_=01189998819991197253#index&params=uhno",
+        "relative": "https://admin@google.com/2/aaaa/bbbb/file",
         "scheme": "https",
         "userinfo": "admin",
         "username": "admin",
@@ -21,6 +22,7 @@
     {
         "uri": "gopher://:test@gopher.floodgap.com:70/100/fake/uri/../../../0/gopher/proxy",
         "normalized": "gopher://:test@gopher.floodgap.com:70/0/gopher/proxy",
+        "relative": "gopher://:test@gopher.floodgap.com:70/0/2/aaaa/bbbb/file",
         "scheme": "gopher",
         "userinfo": ":test",
         "username": "",
@@ -32,6 +34,7 @@
     {
         "uri": "gemini://gemini.circumlunar.space:1965/software/../docs/specification.gmi?a=b&c=d&e=f&g=h#4-TLS",
         "normalized": "gemini://gemini.circumlunar.space:1965/docs/specification.gmi?a=b&c=d&e=f&g=h#4-TLS",
+        "relative": "gemini://gemini.circumlunar.space:1965/2/aaaa/bbbb/file",
         "scheme": "gemini",
         "hostname": "gemini.circumlunar.space",
         "port": 1965,
@@ -48,6 +51,7 @@
     {
         "uri": "file:///etc/passwd",
         "normalized": "file:///etc/passwd",
+        "relative": "file:///2/aaaa/bbbb/file",
         "scheme": "file",
         "hostname": "",
         "port": 0,
@@ -57,6 +61,7 @@
     {
         "uri": "http://admin:password@http.rip:80?oof#page=10&test=3&more=ye",
         "normalized": "http://admin:password@http.rip:80?oof#page=10&test=3&more=ye",
+        "relative": "http://admin:password@http.rip:80/2/aaaa/bbbb/file",
         "scheme": "http",
         "userinfo": "admin:password",
         "username": "admin",
@@ -77,6 +82,7 @@
     {
         "uri": "irc://irc.freenode.net:6667",
         "normalized": "irc://irc.freenode.net:6667",
+        "relative": "irc://irc.freenode.net:6667/2/aaaa/bbbb/file",
         "scheme": "irc",
         "hostname": "irc.freenode.net",
         "port": 6667,
@@ -86,6 +92,7 @@
     {
         "uri": "http://127.0.0.1",
         "normalized": "http://127.0.0.1",
+        "relative": "http://127.0.0.1/2/aaaa/bbbb/file",
         "scheme": "http",
         "hostname": "127.0.0.1",
         "port": 0,
@@ -99,6 +106,7 @@
     {
         "uri": "http://[0000:0000:0000:0000:0000:0000:0000:0000]",
         "normalized": "http://[0000:0000:0000:0000:0000:0000:0000:0000]",
+        "relative": "http://[0000:0000:0000:0000:0000:0000:0000:0000]/2/aaaa/bbbb/file",
         "scheme": "http",
         "hostname": "0000:0000:0000:0000:0000:0000:0000:0000",
         "hostdata": {

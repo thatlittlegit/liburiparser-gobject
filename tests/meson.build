@@ -2,6 +2,7 @@ tests = [
   'fragments.test.c',
   'parser.test.c',
   'port.test.c',
+  'references.test.c',
   'schemes.test.c',
   'userinfo.test.c',
 ]
