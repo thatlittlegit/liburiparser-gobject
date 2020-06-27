@@ -30,6 +30,7 @@ static gchar* str_from_uritextrange(UriTextRangeA range);
 static UriTextRangeA uritextrange_from_str(const gchar* str);
 static void upg_free_upsl_(UriPathSegmentA** segment, UriPathSegmentA** tail);
 static gboolean upg_uri_set_internal_uri(UpgUri* self, void* internal);
+static gchar* upg_uriuri_to_string(UriUriA* self);
 
 #define upg_free_utr(p) g_free((gchar*)p.first)
 #define upg_free_upsl(u) upg_free_upsl_(&u.pathHead, &u.pathTail)
@@ -498,9 +499,21 @@ gchar* upg_uri_to_string(UpgUri* _self)
 {
     UpgUriPrivate* self = priv(_self);
     g_assert(self->initialized);
+    return upg_uriuri_to_string(&self->internal_uri);
+}
 
+/*
+ * upg_uriuri_to_string:
+ * @self: The URI to convert.
+ *
+ * Converts @self to a string.
+ *
+ * Returns: (transfer full): @self as a string.
+ */
+gchar* upg_uriuri_to_string(UriUriA* self)
+{
     int len, ret;
-    if ((ret = uriToStringCharsRequiredA(&self->internal_uri, &len)) != URI_SUCCESS) {
+    if ((ret = uriToStringCharsRequiredA(self, &len)) != URI_SUCCESS) {
         // FIXME use a GError instead of logging
         g_warning("Failed to determine length of URI (code %d)", ret);
         return NULL;
@@ -509,7 +522,7 @@ gchar* upg_uri_to_string(UpgUri* _self)
 
     gchar* out = g_malloc0_n(len, sizeof(char));
     int written;
-    if ((ret = uriToStringA(out, &self->internal_uri, len, &written)) != URI_SUCCESS) {
+    if ((ret = uriToStringA(out, self, len, &written)) != URI_SUCCESS) {
         // FIXME use a GError instead of logging
         g_warning("Failed to convert URI to string (code %d)", ret);
         return NULL;
