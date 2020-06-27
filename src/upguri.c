@@ -427,15 +427,10 @@ UpgUri* upg_uri_new(const gchar* uri, GError** error)
  */
 gboolean upg_uri_configure_from_string(UpgUri* _self, const gchar* nuri, GError** error)
 {
-    UpgUriPrivate* self = priv(_self);
     g_assert(error == NULL || *error == NULL);
 
-    if (self->initialized || nuri == NULL) {
-        upg_uri_dispose(G_OBJECT(self));
-
-        if (nuri == NULL) {
-            return TRUE;
-        }
+    if (nuri == NULL) {
+        return TRUE;
     }
 
     UriUriA parsed;
@@ -472,6 +467,11 @@ gboolean upg_uri_configure_from_string(UpgUri* _self, const gchar* nuri, GError*
 static gboolean upg_uri_set_internal_uri(UpgUri* _self, void* uri)
 {
     UpgUriPrivate* self = priv(_self);
+
+    if (self->initialized) {
+        upg_uri_dispose(G_OBJECT(self));
+    }
+
     memcpy(&self->internal_uri, uri, sizeof(UriUriA));
 
     self->original_scheme = self->internal_uri.scheme;
