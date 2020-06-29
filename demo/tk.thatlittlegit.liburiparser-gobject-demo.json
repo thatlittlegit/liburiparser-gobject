@@ -1,0 +1,60 @@
+{
+    "app-id" : "tk.thatlittlegit.liburiparser-gobject-demo",
+    "runtime" : "org.gnome.Sdk",
+    "runtime-version" : "3.34",
+    "sdk" : "org.gnome.Sdk",
+    "command" : "uri-wizard",
+    "finish-args" : [
+        "--share=ipc",
+        "--socket=x11",
+        "--socket=wayland"
+    ],
+    "build-options" : {
+        "cflags" : "-O2 -g",
+        "cxxflags" : "-O2 -g",
+        "env" : {
+            "V" : "1"
+        }
+    },
+    "cleanup" : [
+        "/include",
+        "/lib/pkgconfig",
+        "/man",
+        "/share/doc",
+        "/share/gtk-doc",
+        "/share/man",
+        "/share/pkgconfig",
+        "*.la",
+        "*.a"
+    ],
+    "modules" : [
+        {
+            "name" : "liburiparser",
+            "buildsystem" : "cmake-ninja",
+            "config-opts" : [
+                "-DCMAKE_BUILD_TYPE=Release",
+                "-DURIPARSER_BUILD_TESTS=OFF",
+                "-DURIPARSER_BUILD_TOOLS=OFF",
+                "-DURIPARSER_BUILD_DOCS=OFF",
+                "-DURIPARSER_BUILD_WCHAR_T=OFF"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/uriparser/uriparser.git"
+                }
+            ]
+        },
+        {
+            "name" : "liburiparser-gobject",
+            "builddir": true,
+            "buildsystem": "meson",
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://github.com/thatlittlegit/liburiparser-gobject.git"
+                }
+            ]
+        }
+    ]
+}
