@@ -20,6 +20,8 @@
 #include <gtk/gtk.h>
 #include <liburiparser-gobject.h>
 
+#include "propertypair.h"
+
 typedef struct {
     GtkWidget* scheme;
     GtkWidget* userinfo;
@@ -30,13 +32,17 @@ typedef struct {
     GtkWidget* fragment;
 } FieldSet;
 
-static void gtk_entry_set_error(GtkEntry*, gboolean);
+typedef struct {
+    GtkWidget* uri;
+    gchar* property;
+} ModificationTuple;
 
-static GtkWidget* create_property_pair(gchar* key);
-static void set_property_pair_value(GtkWidget*, gchar*);
+static void gtk_entry_set_error(GtkEntry*, gboolean);
+static void configure_list_rows(GtkListBox* list, FieldSet* set, GtkWidget* uri);
 
 static void new_window(GtkApplication*, gpointer);
 static void update_fields(GtkWidget*, FieldSet*);
+static void update_uri(WizPropertyPair*, GtkEntry*);
 
 static void gtk_entry_set_error(GtkEntry* entry, gboolean val)
 {
@@ -49,38 +55,12 @@ static void gtk_entry_set_error(GtkEntry* entry, gboolean val)
     }
 }
 
-static GtkWidget* create_property_pair(gchar* key)
-{
-    GtkWidget* box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-    g_object_set_data(G_OBJECT(box), "name", key);
-    GtkWidget* left = gtk_label_new(key);
-    GtkWidget* right = gtk_label_new("");
-
-    gtk_widget_set_size_request(left, 100, 0);
-    gtk_label_set_xalign(GTK_LABEL(left), 1);
-    gtk_label_set_xalign(GTK_LABEL(right), 0);
-    gtk_widget_set_sensitive(left, FALSE);
-
-    if (gtk_get_locale_direction() == GTK_TEXT_DIR_RTL) {
-        gtk_box_pack_start(GTK_BOX(box), right, TRUE, TRUE, 2);
-        gtk_box_pack_end(GTK_BOX(box), left, FALSE, FALSE, 2);
-    } else {
-        gtk_box_pack_start(GTK_BOX(box), left, FALSE, FALSE, 2);
-        gtk_box_pack_end(GTK_BOX(box), right, TRUE, TRUE, 2);
-    }
-
-    return box;
-}
-
-static void set_property_pair_value(GtkWidget* pair, gchar* value)
-{
-    GList* kids = gtk_container_get_children(GTK_CONTAINER(pair));
-    gtk_label_set_text(GTK_LABEL(g_list_nth_data(kids, 1)), value);
-    g_list_free(kids);
-}
-
 static void update_fields(GtkWidget* entry, FieldSet* fields)
 {
+    if (GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(entry), "suppress"))) {
+        return;
+    }
+
     const gchar* new_uri = gtk_entry_get_text(GTK_ENTRY(entry));
 
     GError* err = NULL;
@@ -106,13 +86,13 @@ static void update_fields(GtkWidget* entry, FieldSet* fields)
     gchar* query = upg_uri_get_query_str(uri);
     gchar* fragment = upg_uri_get_fragment(uri);
 
-    set_property_pair_value(fields->scheme, scheme);
-    set_property_pair_value(fields->userinfo, userinfo);
-    set_property_pair_value(fields->hostname, host);
-    set_property_pair_value(fields->port, portstr);
-    set_property_pair_value(fields->path, path);
-    set_property_pair_value(fields->query, query);
-    set_property_pair_value(fields->fragment, fragment);
+    wiz_property_pair_set_value(WIZ_PROPERTY_PAIR(fields->scheme), scheme);
+    wiz_property_pair_set_value(WIZ_PROPERTY_PAIR(fields->userinfo), userinfo);
+    wiz_property_pair_set_value(WIZ_PROPERTY_PAIR(fields->hostname), host);
+    wiz_property_pair_set_value(WIZ_PROPERTY_PAIR(fields->port), portstr);
+    wiz_property_pair_set_value(WIZ_PROPERTY_PAIR(fields->path), path);
+    wiz_property_pair_set_value(WIZ_PROPERTY_PAIR(fields->query), query);
+    wiz_property_pair_set_value(WIZ_PROPERTY_PAIR(fields->fragment), fragment);
 
     g_free(scheme);
     g_free(userinfo);
@@ -123,22 +103,35 @@ static void update_fields(GtkWidget* entry, FieldSet* fields)
     g_object_unref(uri);
 }
 
+static void configure_list_rows(GtkListBox* list, FieldSet* set, GtkWidget* uri)
+{
+    gtk_list_box_insert(list, set->scheme = GTK_WIDGET(wiz_property_pair_new("scheme", "Scheme")), -1);
+    gtk_list_box_insert(list, set->userinfo = GTK_WIDGET(wiz_property_pair_new("userinfo", "Identification")), -1);
+    gtk_list_box_insert(list, set->hostname = GTK_WIDGET(wiz_property_pair_new("host", "Hostname")), -1);
+    gtk_list_box_insert(list, set->port = GTK_WIDGET(wiz_property_pair_new("port", "Port")), -1);
+    gtk_list_box_insert(list, set->path = GTK_WIDGET(wiz_property_pair_new("path-str", "Path")), -1);
+    gtk_list_box_insert(list, set->query = GTK_WIDGET(wiz_property_pair_new("query-str", "Query")), -1);
+    gtk_list_box_insert(list, set->fragment = GTK_WIDGET(wiz_property_pair_new("fragment", "Fragment")), -1);
+
+    g_signal_connect(set->scheme, "changed", G_CALLBACK(update_uri), uri);
+    g_signal_connect(set->userinfo, "changed", G_CALLBACK(update_uri), uri);
+    g_signal_connect(set->hostname, "changed", G_CALLBACK(update_uri), uri);
+    g_signal_connect(set->port, "changed", G_CALLBACK(update_uri), uri);
+    g_signal_connect(set->path, "changed", G_CALLBACK(update_uri), uri);
+    g_signal_connect(set->query, "changed", G_CALLBACK(update_uri), uri);
+    g_signal_connect(set->fragment, "changed", G_CALLBACK(update_uri), uri);
+}
+
 static void new_window(GtkApplication* app, gpointer data)
 {
     GtkBuilder* builder = gtk_builder_new_from_resource("/tk/thatlittlegit/liburiparser-gobject-demo/wizard.ui");
-
-    GtkListBox* list = GTK_LIST_BOX(gtk_builder_get_object(builder, "fields"));
     FieldSet* set = g_new0(FieldSet, 1);
-    gtk_list_box_insert(list, set->scheme = create_property_pair("Scheme"), -1);
-    gtk_list_box_insert(list, set->userinfo = create_property_pair("Identification"), -1);
-    gtk_list_box_insert(list, set->hostname = create_property_pair("Hostname"), -1);
-    gtk_list_box_insert(list, set->port = create_property_pair("Port"), -1);
-    gtk_list_box_insert(list, set->path = create_property_pair("Path"), -1);
-    gtk_list_box_insert(list, set->query = create_property_pair("Query"), -1);
-    gtk_list_box_insert(list, set->fragment = create_property_pair("Fragment"), -1);
 
     GtkWidget* uri = GTK_WIDGET(gtk_builder_get_object(builder, "uri-field"));
     g_signal_connect(uri, "changed", G_CALLBACK(update_fields), set);
+
+    GtkListBox* list = GTK_LIST_BOX(gtk_builder_get_object(builder, "fields"));
+    configure_list_rows(list, set, uri);
 
     GtkWidget* window = GTK_WIDGET(gtk_builder_get_object(builder, "window"));
     gtk_application_add_window(app, GTK_WINDOW(window));
@@ -147,6 +140,39 @@ static void new_window(GtkApplication* app, gpointer data)
     gtk_widget_show_all(window);
     gtk_window_set_title(GTK_WINDOW(window), "URI Wizard");
     gtk_window_present(GTK_WINDOW(window));
+}
+
+static void update_uri(WizPropertyPair* pair, GtkEntry* uri_widget)
+{
+    GError* err = NULL;
+    UpgUri* uri = upg_uri_new(gtk_entry_get_text(uri_widget), &err);
+
+    gtk_entry_set_error(uri_widget, err != NULL);
+    if (err != NULL) {
+        return;
+    }
+
+    const gchar* id = wiz_property_pair_get_id(pair);
+    const gchar* str = wiz_property_pair_get_value(pair);
+    GValue value = G_VALUE_INIT;
+    if (g_str_equal(id, "port")) {
+        g_value_init(&value, G_TYPE_UINT);
+        g_value_set_uint(&value, CLAMP(g_ascii_strtoull(str, NULL, 10), 0, 65535));
+    } else {
+
+        g_value_init(&value, G_TYPE_STRING);
+        g_value_set_string(&value, str);
+    }
+    g_object_set_property(G_OBJECT(uri), wiz_property_pair_get_id(pair), &value);
+    g_value_unset(&value);
+
+    g_object_set_data(G_OBJECT(uri_widget), "suppress", GUINT_TO_POINTER(TRUE));
+
+    gchar* text_uri = upg_uri_to_string(uri);
+    gtk_entry_set_text(uri_widget, text_uri);
+    g_free(text_uri);
+
+    g_object_set_data(G_OBJECT(uri_widget), "suppress", GUINT_TO_POINTER(FALSE));
 }
 
 int main(int argc, char** argv)

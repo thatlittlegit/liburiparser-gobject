@@ -1,5 +1,6 @@
 demo_sources = [
   'wizard.c',
+  'propertypair.c',
   import('gnome').compile_resources('demo-resources', 'demo.gresources.xml')
 ]
 
