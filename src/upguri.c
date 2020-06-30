@@ -190,7 +190,6 @@ static void upg_uri_class_init(UpgUriClass* klass)
 
 static void upg_uri_init(UpgUri* self)
 {
-    priv(self)->initialized = FALSE;
 }
 
 static void upg_uri_dispose(GObject* self)
