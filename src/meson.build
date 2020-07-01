@@ -32,7 +32,7 @@ install_headers(liburiparser_gobject_headers, subdir: 'liburiparser-gobject')
 
 import('pkgconfig').generate(
   description: 'A GObject/GLib wrapper over liburiparser',
-  libraries: liburiparser_gobject_lib,
+  libraries: upg_pkg,
   name: 'liburiparser-gobject',
   filebase: 'liburiparser-gobject-' + version_split[0],
   version: meson.project_version(),
@@ -42,11 +42,12 @@ import('pkgconfig').generate(
 
 gir = gnome.generate_gir(liburiparser_gobject_lib,
   sources: [ liburiparser_gobject_headers, liburiparser_gobject_sources ],
-  header: 'liburiparser-gobject.h',
+  header: 'liburiparser-gobject/liburiparser-gobject.h',
   identifier_prefix: 'Upg',
   nsversion: version_split[0],
   namespace: 'UriParser',
   install: true,
+  link_with: liburiparser_gobject_lib,
 )
 
 gnome.generate_vapi('liburiparser-gobject-' + version_split[0],
