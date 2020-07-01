@@ -1177,7 +1177,7 @@ gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** 
  *
  * Wrapper for Vala over g_object_unref(). Don't worry if you're using C.
  */
-void upg_uri_unref(UpgUri* self)
+void upg_uri_unref(gpointer self)
 {
     g_object_unref(self);
 }
@@ -1187,8 +1187,10 @@ void upg_uri_unref(UpgUri* self)
  * @self: The #UpgUri to ref.
  *
  * Wrapper for Vala over g_object_ref(). Don't worry if you're using C.
+ *
+ * Returns: @self
  */
-void upg_uri_ref(UpgUri* self)
+gpointer upg_uri_ref(gpointer self)
 {
-    g_object_ref(self);
+    return g_object_ref(UPG_URI(self));
 }
