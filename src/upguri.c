@@ -1170,3 +1170,25 @@ gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** 
     uriFreeUriMembersA(&dest);
     return final;
 }
+
+/**
+ * upg_uri_unref:
+ * @self: The #UpgUri to unref.
+ *
+ * Wrapper for Vala over g_object_unref(). Don't worry if you're using C.
+ */
+void upg_uri_unref(UpgUri* self)
+{
+    g_object_unref(self);
+}
+
+/**
+ * upg_uri_ref:
+ * @self: The #UpgUri to ref.
+ *
+ * Wrapper for Vala over g_object_ref(). Don't worry if you're using C.
+ */
+void upg_uri_ref(UpgUri* self)
+{
+    g_object_ref(self);
+}

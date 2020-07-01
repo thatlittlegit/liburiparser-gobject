@@ -40,6 +40,8 @@ upg_uri_apply_reference
 upg_uri_subtract_to_reference
 <SUBSECTION Standard>
 UPG_TYPE_URI
+upg_uri_ref
+upg_uri_unref
 <SUBSECTION Private>
 upg_uri_get_type
 </SECTION>
