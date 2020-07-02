@@ -256,6 +256,7 @@ void path_segments_are_right()
         g_assert_nonnull(g_strrstr(sett, "/path/set/successfully"));
         g_free(sett);
 
+        upg_uri_set_path(uri, NULL);
         g_object_unref(uri);
     }
 }

@@ -353,10 +353,10 @@ static UriTextRangeA uritextrange_from_str(const gchar* str)
 static void upg_free_upsl_(UriPathSegmentA** segment, UriPathSegmentA** tail)
 {
     UriPathSegmentA* current = *segment;
-    do {
+    while (current != NULL) {
         upg_free_utr(current->text);
         current = current->next;
-    } while (current != NULL);
+    }
     g_free(*segment);
     *segment = NULL;
     *tail = NULL;
