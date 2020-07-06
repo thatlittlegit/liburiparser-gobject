@@ -383,7 +383,7 @@ static GHashTable* parse_query_string(gchar* str)
 
 /**
  * upg_uri_new:
- * @uri: The input URI to be parsed.
+ * @uri: (nullable): The input URI to be parsed, or #NULL.
  * @error: A #GError.
  *
  * > The URI is normalized while it is parsed. You cannot use
@@ -391,7 +391,8 @@ static GHashTable* parse_query_string(gchar* str)
  * > normalization works is difficult to achieve with the memory model used.
  *
  * Creates a new #UpgUri by parsing @uri. Note that @uri must be a valid URI,
- * otherwise it will fail.
+ * otherwise it will fail. It can also be #NULL, in which case an empty URI will
+ * be returned.
  *
  * Returns: (transfer full) (nullable): a new #UpgUri if the parsing was
  *          successful, or #NULL.
