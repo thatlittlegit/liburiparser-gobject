@@ -26,7 +26,7 @@ static void apply_reference()
         UpgUri* base = upg_uri_new(tests[i]->uri, NULL);
 
         UpgUri* applied = upg_uri_apply_reference(base, "../1/../2/aaaa/bbbb/cccc/../file", NULL);
-        gchar* str = upg_uri_to_string(applied);
+        gchar* str = upg_uri_to_string_ign(applied, TRUE);
         g_assert_cmpstr(str, ==, tests[i]->relative);
 
         g_free(str);

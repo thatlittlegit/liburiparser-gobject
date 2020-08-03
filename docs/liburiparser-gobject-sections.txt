@@ -15,6 +15,7 @@ UpgUri
 upg_uri_new
 upg_uri_configure_from_string
 upg_uri_to_string
+upg_uri_to_string_ign
 upg_uri_get_scheme
 upg_uri_set_scheme
 upg_uri_get_host
@@ -38,6 +39,7 @@ upg_uri_get_username
 upg_uri_set_userinfo
 upg_uri_apply_reference
 upg_uri_subtract_to_reference
+UpgUriFatalRanking
 <SUBSECTION Standard>
 UPG_TYPE_URI
 upg_uri_ref
