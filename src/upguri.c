@@ -539,6 +539,7 @@ gchar* upg_uriuri_to_string(UriUriA* self)
     if ((ret = uriToStringA(out, self, len, &written)) != URI_SUCCESS) {
         // FIXME use a GError instead of logging
         g_warning("Failed to convert URI to string (code %d)", ret);
+        g_free(out);
         return NULL;
     }
 
