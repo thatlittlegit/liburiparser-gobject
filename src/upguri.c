@@ -86,6 +86,7 @@ typedef struct {
 
     // private
     gboolean initialized;
+    gboolean dirty;
     UriUriA internal_uri;
     gint32 modified;
     UriPathSegmentA* original_segment;
@@ -96,6 +97,7 @@ typedef struct {
     UriTextRangeA original_port;
     UriTextRangeA original_userinfo;
     UriTextRangeA original_scheme;
+    gchar* cached;
 } UpgUriPrivate;
 G_DEFINE_TYPE_WITH_PRIVATE(UpgUri, upg_uri, G_TYPE_OBJECT);
 
@@ -190,6 +192,7 @@ static void upg_uri_class_init(UpgUriClass* klass)
 
 static void upg_uri_init(UpgUri* self)
 {
+    priv(self)->dirty = TRUE;
 }
 
 static void upg_uri_dispose(GObject* self)
@@ -241,6 +244,8 @@ static void upg_uri_dispose(GObject* self)
     uri->internal_uri.portText = uri->original_port;
     uriFreeUriMembersA(&uri->internal_uri);
     uri->initialized = FALSE;
+    g_free(uri->cached);
+    uri->dirty = TRUE;
 }
 
 static void upg_uri_finalize(GObject* self)
@@ -499,7 +504,16 @@ gchar* upg_uri_to_string(UpgUri* _self)
 {
     UpgUriPrivate* self = priv(_self);
     g_assert(self->initialized);
-    return upg_uriuri_to_string(&self->internal_uri);
+
+    if (!self->dirty) {
+        return g_strdup(self->cached);
+    }
+
+    gchar* string = upg_uriuri_to_string(&self->internal_uri);
+    self->dirty = FALSE;
+    g_free(self->cached);
+    self->cached = g_strdup(string);
+    return string;
 }
 
 /*
@@ -544,6 +558,7 @@ gchar* upg_uriuri_to_string(UriUriA* self)
 gboolean upg_uri_set_scheme(UpgUri* _self, const gchar* nscheme)
 {
     UpgUriPrivate* uri = priv(_self);
+    uri->dirty = TRUE;
 
     if (uri->modified & MASK_SCHEME) {
         upg_free_utr(uri->internal_uri.scheme);
@@ -654,6 +669,7 @@ gboolean upg_uri_set_host(UpgUri* _self, const gchar* host)
     UpgUriPrivate* uri = priv(_self);
     g_assert(uri->initialized);
     uri->modified |= MASK_HOST;
+    uri->dirty = TRUE;
 
     // FIXME we should probably parse the incoming host to check if it's IPvX
     uri->internal_uri.hostData = (UriHostDataA) { NULL, NULL, { NULL, NULL } };
@@ -758,6 +774,7 @@ gboolean upg_uri_set_path(UpgUri* _self, GList* list)
         self->internal_uri.pathHead = NULL;
         self->internal_uri.pathTail = NULL;
         self->modified |= MASK_PATH;
+        self->dirty = TRUE;
         return TRUE;
     }
 
@@ -771,6 +788,7 @@ gboolean upg_uri_set_path(UpgUri* _self, GList* list)
     self->internal_uri.pathHead = segments;
     self->internal_uri.pathTail = &segments[len - 1];
     self->modified |= MASK_PATH;
+    self->dirty = TRUE;
 
     return TRUE;
 }
@@ -866,6 +884,7 @@ gboolean upg_uri_set_query_str(UpgUri* _self, const gchar* nq)
     }
 
     self->modified |= MASK_QUERY;
+    self->dirty = TRUE;
 
     if (nq == NULL) {
         self->internal_uri.query = (UriTextRangeA) { NULL, NULL };
@@ -931,6 +950,7 @@ gboolean upg_uri_set_fragment(UpgUri* _self, const gchar* fragment)
     if (uri->modified & MASK_FRAGMENT) {
         upg_free_utr(uri->internal_uri.fragment);
     }
+    uri->dirty = TRUE;
     uri->modified |= MASK_FRAGMENT;
 
     if (fragment == NULL) {
@@ -1022,6 +1042,7 @@ gboolean upg_uri_set_port(UpgUri* _self, guint16 port)
         upg_free_utr(self->internal_uri.portText);
     }
     self->modified |= MASK_PORT;
+    self->dirty = TRUE;
 
     if (port == 0) {
         self->internal_uri.portText = (UriTextRangeA) { NULL, NULL };
@@ -1084,6 +1105,7 @@ gboolean upg_uri_set_userinfo(UpgUri* _self, const gchar* userinfo)
         upg_free_utr(uri->internal_uri.userInfo);
     }
     uri->modified |= MASK_USERINFO;
+    uri->dirty = TRUE;
 
     if (userinfo == NULL) {
         uri->internal_uri.userInfo = (UriTextRangeA) { NULL, NULL };
