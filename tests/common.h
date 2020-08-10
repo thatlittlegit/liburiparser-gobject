@@ -20,6 +20,7 @@
 #include <glib.h>
 #include <liburiparser-gobject.h>
 #include <locale.h>
+#include <string.h>
 
 typedef struct {
     const gchar* uri;
