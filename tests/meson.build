@@ -7,6 +7,8 @@ tests = [
   'userinfo.test.c',
 ]
 
+jsonglib = dependency('json-glib-1.0')
+
 foreach test: tests
   test(test,
     executable(test,
@@ -15,7 +17,7 @@ foreach test: tests
         'common.c',
       ],
       dependencies: [
-        dependency('json-glib-1.0'),
+        jsonglib,
         deps,
       ],
       c_args: '-DJSONFILE="@0@"'.format(meson.current_source_dir() / 'tests.json'),
