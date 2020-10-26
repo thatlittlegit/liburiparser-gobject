@@ -1,3 +1,7 @@
+if get_option('docs') == false
+  subdir_done()
+endif
+
 configure_file(
   input: 'version.xml.in',
   output: 'version.xml',

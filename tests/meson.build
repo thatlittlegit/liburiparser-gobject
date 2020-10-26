@@ -1,3 +1,7 @@
+if get_option('tests') == false
+  subdir_done()
+endif
+
 tests = [
   'fragments.test.c',
   'parser.test.c',

@@ -1,3 +1,7 @@
+if get_option('demo') == false
+  subdir_done()
+endif
+
 demo_sources = [
   'wizard.c',
   'propertypair.c',
