@@ -815,7 +815,6 @@ gboolean upg_uri_set_path(UpgUri* _self, GList* list)
 
     gint len = g_list_length(list);
     if (len == 0) {
-        upg_free_upsl(self->internal_uri);
         self->internal_uri.pathHead = NULL;
         self->internal_uri.pathTail = NULL;
         self->modified |= MASK_PATH;
