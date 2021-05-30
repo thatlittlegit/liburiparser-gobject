@@ -35,8 +35,6 @@ static gchar* upg_uriuri_to_string(UriUriA* self, GError** error);
 #define upg_free_utr(p) g_free((gchar*)p.first)
 #define upg_free_upsl(u) upg_free_upsl_(&u.pathHead, &u.pathTail)
 #define priv(x) ((UpgUriPrivate*)upg_uri_get_instance_private(x))
-// Don't use for anything expensive or where a has side effects!
-#define either_or(a, b) ((a) ? (a) : (b))
 
 enum {
     PROP_SCHEME = 1,
@@ -1060,7 +1058,7 @@ gboolean upg_uri_set_fragment_params(UpgUri* uri, GHashTable* params)
 guint16 upg_uri_get_port(UpgUri* self)
 {
     gchar* port_str = str_from_uritextrange(priv(self)->internal_uri.portText);
-    guint ret = strtoull(either_or(port_str, "0"), NULL, 10);
+    guint ret = port_str ? strtoull(port_str, NULL, 10) : 0;
     g_free(port_str);
     return (guint16)ret;
 }
@@ -1121,7 +1119,11 @@ gchar* upg_uri_get_userinfo(UpgUri* uri)
 gchar* upg_uri_get_username(UpgUri* uri)
 {
     gchar* userinfo = str_from_uritextrange(priv(uri)->internal_uri.userInfo);
-    gchar** chunks = g_strsplit(either_or(userinfo, ""), ":", 2);
+    if (userinfo == NULL) {
+        return NULL;
+    }
+
+    gchar** chunks = g_strsplit(userinfo, ":", 2);
     gchar* ret = g_strdup(chunks[0]);
     g_strfreev(chunks);
     g_free(userinfo);
