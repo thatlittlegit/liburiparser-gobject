@@ -168,7 +168,7 @@ static void update_uri(WizPropertyPair* pair, GtkEntry* uri_widget)
 
     g_object_set_data(G_OBJECT(uri_widget), "suppress", GUINT_TO_POINTER(TRUE));
 
-    gchar* text_uri = upg_uri_to_string_ign(uri, TRUE);
+    gchar* text_uri = upg_uri_to_string(uri);
     gtk_entry_set_text(uri_widget, text_uri);
     g_free(text_uri);
 

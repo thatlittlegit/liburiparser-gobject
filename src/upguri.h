@@ -37,30 +37,9 @@ struct _UpgUriClass {
     gpointer padding[16];
 };
 
-/**
- * UpgUriFatalRanking:
- * @UPG_URI_FATAL: Use g_error() to log, terminating the application. What the
- *                 function returns is irrelevant; it wouldn't exist after.
- *                 Equivilent to #TRUE.
- * @UPG_URI_NONFATAL_NEVERNULL: Use g_warning() to log, keeping the application
- *                              alive. Upon error, return an empty string.
- *                              Equivilent to #FALSE.
- * @UPG_URI_NONFATAL_NULLABLE: Use g_warning() to log, keeping the application
- *                             alive. Upon error, return #NULL.
- *
- * Whether or not the call to upg_uri_to_string_ign() should be fatal or not,
- * and if not what to do upon error.
- */
-typedef enum {
-    UPG_URI_NONFATAL_NEVERNULL = FALSE,
-    UPG_URI_FATAL = TRUE,
-    UPG_URI_NONFATAL_NULLABLE = 2,
-} UpgUriFatalRanking;
-
 UpgUri* upg_uri_new(const gchar* uri, GError** error);
 gboolean upg_uri_configure_from_string(UpgUri* self, const gchar* nuri, GError** error);
-gchar* upg_uri_to_string(UpgUri* self, GError** error);
-gchar* upg_uri_to_string_ign(UpgUri* self, UpgUriFatalRanking fatal);
+gchar* upg_uri_to_string(UpgUri* self);
 gboolean upg_uri_set_scheme(UpgUri* self, const gchar* nscheme);
 gchar* upg_uri_get_scheme(UpgUri* self);
 gchar* upg_uri_get_host(UpgUri* self);

@@ -30,7 +30,7 @@ static gchar* str_from_uritextrange(UriTextRangeA range);
 static UriTextRangeA uritextrange_from_str(const gchar* str);
 static void upg_free_upsl_(UriPathSegmentA** segment, UriPathSegmentA** tail);
 static gboolean upg_uri_set_internal_uri(UpgUri* self, void* internal);
-static gchar* upg_uriuri_to_string(UriUriA* self, GError** error);
+static gchar* upg_uriuri_to_string(UriUriA* self);
 
 #define upg_free_utr(p) g_free((gchar*)p.first)
 #define upg_free_upsl(u) upg_free_upsl_(&u.pathHead, &u.pathTail)
@@ -489,54 +489,14 @@ static gboolean upg_uri_set_internal_uri(UpgUri* _self, void* uri)
 }
 
 /**
- * upg_uri_to_string_ign:
- * @self: The URI to convert to a string.
- * @fatal: The response that should be given to errors.
- *
- * Calls upg_uri_to_string() and responds to the error. This is useful if
- * exception ignoring isn't just passing #NULL to the function, like in Vala
- * where try/catches have to be used.
- *
- * Returns: (transfer full) (allow-none): The textual representation of the URI.
- */
-gchar* upg_uri_to_string_ign(UpgUri* self, UpgUriFatalRanking ranking)
-{
-    GError* err = NULL;
-    gchar* res = upg_uri_to_string(self, &err);
-    if (err == NULL) {
-        return res;
-    }
-
-    switch (ranking) {
-    case UPG_URI_FATAL:
-        g_error("%s", err->message);
-        g_error_free(err);
-        return NULL;
-    case UPG_URI_NONFATAL_NEVERNULL:
-        g_warning("%s", err->message);
-        g_error_free(err);
-        return g_strdup("");
-    case UPG_URI_NONFATAL_NULLABLE:
-        g_warning("%s", err->message);
-        g_error_free(err);
-        return NULL;
-    default:
-        g_critical("Unknown UpgUriFatalRanking value %u", ranking);
-        G_BREAKPOINT();
-        return NULL;
-    }
-}
-
-/**
  * upg_uri_to_string:
  * @self: The URI to convert to a string.
- * @error: A #GError.
  *
  * Converts the in-memory URI object into a string.
  *
  * Returns: (transfer full): The textual representation of the URI.
  */
-gchar* upg_uri_to_string(UpgUri* _self, GError** err)
+gchar* upg_uri_to_string(UpgUri* _self)
 {
     UpgUriPrivate* self = priv(_self);
     g_assert(self->initialized);
@@ -545,10 +505,7 @@ gchar* upg_uri_to_string(UpgUri* _self, GError** err)
         return g_strdup(self->cached);
     }
 
-    gchar* string;
-    if ((string = upg_uriuri_to_string(&self->internal_uri, err)) == NULL) {
-        return NULL;
-    }
+    gchar* string = upg_uriuri_to_string(&self->internal_uri);
 
     self->dirty = FALSE;
     g_free(self->cached);
@@ -564,23 +521,15 @@ gchar* upg_uri_to_string(UpgUri* _self, GError** err)
  *
  * Returns: (transfer full): @self as a string.
  */
-gchar* upg_uriuri_to_string(UriUriA* self, GError** error)
+gchar* upg_uriuri_to_string(UriUriA* self)
 {
-    int len, ret;
-    if ((ret = uriToStringCharsRequiredA(self, &len)) != URI_SUCCESS) {
-        g_set_error(error, UPG_ERROR, UPG_ERR_TOSTRING, "Failed to determine length of URI: %s", upg_strurierror(ret));
-        return NULL;
-    }
-    len++;
+    int len;
+    g_assert(uriToStringCharsRequiredA(self, &len) == URI_SUCCESS);
+    len += 1;
 
     gchar* out = g_malloc0_n(len, sizeof(char));
     int written;
-    if ((ret = uriToStringA(out, self, len, &written)) != URI_SUCCESS) {
-        g_set_error(error, UPG_ERROR, UPG_ERR_TOSTRING, "Failed to write out URI: %s", upg_strurierror(ret));
-        g_free(out);
-        return NULL;
-    }
-
+    g_assert(uriToStringA(out, self, len, &written) == URI_SUCCESS);
     g_assert(g_utf8_validate_len(out, written - 1, NULL));
     return out;
 }
@@ -1231,12 +1180,7 @@ gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** 
         return NULL;
     }
 
-    gchar* final;
-    if ((final = upg_uriuri_to_string(&dest, err)) == NULL) {
-        uriFreeUriMembersA(&dest);
-        return NULL;
-    }
-
+    gchar* final = upg_uriuri_to_string(&dest);
     uriFreeUriMembersA(&dest);
     return final;
 }
