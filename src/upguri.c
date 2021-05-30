@@ -1,6 +1,6 @@
 /* liburiparser-gobject.c
  *
- * Copyright 2020 thatlittlegit
+ * Copyright 2020-2021 thatlittlegit
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -405,10 +405,8 @@ static GHashTable* parse_query_string(gchar* str)
 UpgUri* upg_uri_new(const gchar* uri, GError** error)
 {
     UpgUri* ret = g_object_new(UPG_TYPE_URI, NULL);
-    GError* err = NULL;
-    if (!upg_uri_configure_from_string(ret, uri, &err)) {
+    if (!upg_uri_configure_from_string(ret, uri, error)) {
         g_object_unref(ret);
-        g_propagate_error(error, err);
         return NULL;
     }
     return ret;
@@ -550,9 +548,7 @@ gchar* upg_uri_to_string(UpgUri* _self, GError** err)
     }
 
     gchar* string;
-    GError* error;
-    if ((string = upg_uriuri_to_string(&self->internal_uri, &error)) == NULL) {
-        g_propagate_error(err, error);
+    if ((string = upg_uriuri_to_string(&self->internal_uri, err)) == NULL) {
         return NULL;
     }
 
@@ -1234,9 +1230,7 @@ gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** 
     }
 
     gchar* final;
-    GError* error;
-    if ((final = upg_uriuri_to_string(&dest, &error)) == NULL) {
-        g_propagate_error(err, error);
+    if ((final = upg_uriuri_to_string(&dest, err)) == NULL) {
         uriFreeUriMembersA(&dest);
         return NULL;
     }
