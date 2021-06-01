@@ -18,10 +18,13 @@
 
 #include "liburiparser-gobject.h"
 #include "upgerror.h"
+#include <gio/gio.h>
 #include <uriparser/Uri.h>
 
 static void upg_uri_class_init(UpgUriClass*);
+static void upg_uri_initable_init(GInitableIface*);
 static void upg_uri_init(UpgUri*);
+static gboolean upg_uri_real_init(GInitable*, GCancellable* cancel, GError** error);
 static void upg_uri_dispose(GObject*);
 static void upg_uri_finalize(GObject*);
 static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GParamSpec* spec);
@@ -47,6 +50,7 @@ enum {
     PROP_PORT,
     PROP_USERINFO,
     PROP_USERNAME,
+    PROP_WANTED,
     _N_PROPERTIES_
 };
 
@@ -95,8 +99,13 @@ typedef struct {
     UriTextRangeA original_userinfo;
     UriTextRangeA original_scheme;
     gchar* cached;
+    gchar* wanted;
 } UpgUriPrivate;
-G_DEFINE_TYPE_WITH_PRIVATE(UpgUri, upg_uri, G_TYPE_OBJECT);
+
+G_DEFINE_TYPE_EXTENDED(UpgUri, upg_uri, G_TYPE_OBJECT, 0,
+                       G_ADD_PRIVATE(UpgUri) struct dummy;
+                       G_IMPLEMENT_INTERFACE(G_TYPE_INITABLE, upg_uri_initable_init) struct dummy;)
+struct dummy;
 
 static void upg_uri_class_init(UpgUriClass* klass)
 {
@@ -181,16 +190,53 @@ static void upg_uri_class_init(UpgUriClass* klass)
         "The username portion of the user information.",
         NULL,
         G_PARAM_READABLE);
+    /**
+     * UpgUri:wanted: (type gchar*) (skip)
+     *
+     * The string that should be used as we initialize. Don't set this; use
+     * upg_uri_new() instead, since this is just used to get information to the
+     * GInitable function.
+     */
+    params[PROP_WANTED] = g_param_spec_string("wanted",
+        "Wanted",
+        "The string that should be used as we initialize. Don't set this; use"
+        "upg_uri_new() instead, since this is just used to get information"
+        "to the GInitable function.",
+        NULL,
+        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY);
     g_object_class_install_properties(glass, _N_PROPERTIES_, params);
 
     glass->dispose = upg_uri_dispose;
     glass->finalize = upg_uri_finalize;
 }
 
+static void upg_uri_initable_init(GInitableIface* iface)
+{
+    iface->init = upg_uri_real_init;
+}
+
 static void upg_uri_init(UpgUri* self)
 {
     UpgUriPrivate* priv = upg_uri_get_instance_private(self);
     priv->dirty = TRUE;
+}
+
+static gboolean upg_uri_real_init(GInitable* initable, GCancellable* cancel, GError** error)
+{
+    (void)cancel;
+    UpgUri* self = UPG_URI(initable);
+    UpgUriPrivate* priv = upg_uri_get_instance_private(self);
+
+    if (priv->wanted == NULL) {
+        return TRUE;
+    }
+
+    if (!upg_uri_configure_from_string(self, priv->wanted, error)) {
+        g_free(priv->wanted);
+        return FALSE;
+    }
+
+    return TRUE;
 }
 
 static void upg_uri_dispose(GObject* self)
@@ -243,6 +289,7 @@ static void upg_uri_dispose(GObject* self)
     uriFreeUriMembersA(&uri->internal_uri);
     uri->initialized = FALSE;
     g_free(uri->cached);
+    g_free(uri->wanted);
     uri->dirty = TRUE;
 }
 
@@ -254,6 +301,7 @@ static void upg_uri_finalize(GObject* self)
 static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GParamSpec* spec)
 {
     UpgUri* self = UPG_URI(obj);
+    UpgUriPrivate* priv = upg_uri_get_instance_private(self);
 
     switch (id) {
     case PROP_SCHEME:
@@ -282,6 +330,10 @@ static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GP
         break;
     case PROP_USERINFO:
         upg_uri_set_userinfo(self, g_value_get_string(value));
+        break;
+    case PROP_WANTED:
+        g_free(priv->wanted);
+        priv->wanted = g_value_dup_string(value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, id, spec);
@@ -402,12 +454,7 @@ static GHashTable* parse_query_string(gchar* str)
  */
 UpgUri* upg_uri_new(const gchar* uri, GError** error)
 {
-    UpgUri* ret = g_object_new(UPG_TYPE_URI, NULL);
-    if (!upg_uri_configure_from_string(ret, uri, error)) {
-        g_object_unref(ret);
-        return NULL;
-    }
-    return ret;
+    return g_initable_new(UPG_TYPE_URI, NULL, error, "wanted", uri, NULL);
 }
 
 /**

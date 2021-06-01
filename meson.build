@@ -9,6 +9,7 @@ deps = [
   dependency('liburiparser', version: '>= 0.9'),
   dependency('glib-2.0', version: '>= 2.60'),
   dependency('gobject-2.0', version: '>= 2'),
+  dependency('gio-2.0', version: '>= 2'),
 ]
 
 add_global_arguments('-DLIBURIPARSER_GOBJECT_COMPILATION',
