@@ -178,21 +178,22 @@ void properties_work()
         g_value_unset(&vpath);
 
         GValue vquery = G_VALUE_INIT;
-        g_value_init(&vquery, G_TYPE_POINTER);
+        g_value_init(&vquery, G_TYPE_HASH_TABLE);
         GHashTable* nquery = g_hash_table_new(g_str_hash, g_str_equal);
         g_hash_table_insert(nquery, "example", "value");
-        g_value_set_pointer(&vquery, nquery);
+        g_value_set_boxed(&vquery, nquery);
         g_object_set_property(G_OBJECT(uri), "query", &vquery);
         GHashTable* rquery = upg_uri_get_query(uri);
         g_assert_cmpstr(g_hash_table_lookup(rquery, "example"), ==, "value");
         GValue Rquery = G_VALUE_INIT;
         g_object_get_property(G_OBJECT(uri), "query", &Rquery);
-        GHashTable* Rhuery = g_value_get_pointer(&Rquery);
+        GHashTable* Rhuery = g_value_get_boxed(&Rquery);
         g_assert_cmpstr(g_hash_table_lookup(Rhuery, "example"), ==, "value");
 
         g_hash_table_unref(nquery);
         g_hash_table_unref(rquery);
-        g_hash_table_unref(Rhuery);
+        g_value_unset(&vquery);
+        g_value_unset(&Rquery);
 
         GValue vqstr = G_VALUE_INIT;
         g_value_init(&vqstr, G_TYPE_STRING);
@@ -207,7 +208,7 @@ void properties_work()
         g_assert_cmpstr(Rqstr, ==, rqstr);
         GValue Vqhtr = G_VALUE_INIT;
         g_object_get_property(G_OBJECT(uri), "query", &Vqhtr);
-        GHashTable* Rqhtr = g_value_get_pointer(&Vqhtr);
+        GHashTable* Rqhtr = g_value_get_boxed(&Vqhtr);
         g_assert_cmpstr(g_hash_table_lookup(Rqhtr, "ababa"), ==, "aba");
         g_assert_cmpstr(g_hash_table_lookup(Rqhtr, "caca"), ==, "non");
 
@@ -215,7 +216,6 @@ void properties_work()
         g_value_unset(&vqstr);
         g_value_unset(&Vqstr);
         g_value_unset(&Vqhtr);
-        g_hash_table_unref(Rqhtr);
 
         g_object_unref(uri);
     }

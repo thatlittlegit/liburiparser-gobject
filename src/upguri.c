@@ -141,13 +141,14 @@ static void upg_uri_class_init(UpgUriClass* klass)
         NULL,
         G_PARAM_READABLE);
     /**
-     * UpgUri:query: (type GHashTable)
+     * UpgUri:query: (type GHashTable(utf8,utf8))
      *
      * The query parameters of this URI.
      */
-    params[PROP_QUERY] = g_param_spec_pointer("query",
+    params[PROP_QUERY] = g_param_spec_boxed("query",
         "Query",
         "The query parameters of this URI.",
+        G_TYPE_HASH_TABLE,
         G_PARAM_READWRITE);
     params[PROP_QUERYSTR] = g_param_spec_string("query-str",
         "Query string",
@@ -160,13 +161,14 @@ static void upg_uri_class_init(UpgUriClass* klass)
         NULL,
         G_PARAM_READWRITE);
     /**
-     * UpgUri:fragment_params: (type GHashTable)
+     * UpgUri:fragment_params: (type GHashTable(utf8,utf8))
      *
      * The fragment parameters of the URI.
      */
-    params[PROP_FRAGMENTPARAMS] = g_param_spec_pointer("fragment-params",
+    params[PROP_FRAGMENTPARAMS] = g_param_spec_boxed("fragment-params",
         "Fragment parameters",
         "The fragment parameters of the URI.",
+        G_TYPE_HASH_TABLE,
         G_PARAM_READWRITE);
     /**
      * UpgUri:port: (type guint16)
@@ -314,7 +316,7 @@ static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GP
         upg_uri_set_path(self, g_value_get_pointer(value));
         break;
     case PROP_QUERY:
-        upg_uri_set_query(self, g_value_get_pointer(value));
+        upg_uri_set_query(self, g_value_get_boxed(value));
         break;
     case PROP_QUERYSTR:
         upg_uri_set_query_str(self, g_value_get_string(value));
@@ -323,7 +325,7 @@ static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GP
         upg_uri_set_fragment(self, g_value_get_string(value));
         break;
     case PROP_FRAGMENTPARAMS:
-        upg_uri_set_fragment_params(self, g_value_get_pointer(value));
+        upg_uri_set_fragment_params(self, g_value_get_boxed(value));
         break;
     case PROP_PORT:
         upg_uri_set_port(self, g_value_get_uint(value));
@@ -359,7 +361,7 @@ static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSp
         g_value_set_string(value, upg_uri_get_path_str(self));
         break;
     case PROP_QUERY:
-        g_value_set_pointer(value, upg_uri_get_query(self));
+        g_value_take_boxed(value, upg_uri_get_query(self));
         break;
     case PROP_QUERYSTR:
         g_value_take_string(value, upg_uri_get_query_str(self));
@@ -368,7 +370,7 @@ static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSp
         g_value_take_string(value, upg_uri_get_fragment(self));
         break;
     case PROP_FRAGMENTPARAMS:
-        g_value_set_pointer(value, upg_uri_get_fragment_params(self));
+        g_value_take_boxed(value, upg_uri_get_fragment_params(self));
         break;
     case PROP_PORT:
         g_value_set_uint(value, upg_uri_get_port(self));
