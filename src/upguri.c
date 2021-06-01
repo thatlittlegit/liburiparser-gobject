@@ -441,7 +441,7 @@ static GHashTable* parse_query_string(gchar* str)
 
 /**
  * upg_uri_new:
- * @uri: (nullable): The input URI to be parsed, or #NULL.
+ * @uri: (transfer none) (nullable): The input URI to be parsed, or #NULL.
  * @error: A #GError.
  *
  * > The URI is normalized while it is parsed. You cannot use
@@ -452,8 +452,8 @@ static GHashTable* parse_query_string(gchar* str)
  * otherwise it will fail. It can also be #NULL, in which case an empty URI will
  * be returned.
  *
- * Returns: (transfer full) (nullable): a new #UpgUri if the parsing was
- *          successful, or #NULL.
+ * Returns: (transfer full): a new #UpgUri if the parsing was successful, or
+ * #NULL.
  */
 UpgUri* upg_uri_new(const gchar* uri, GError** error)
 {
@@ -463,7 +463,7 @@ UpgUri* upg_uri_new(const gchar* uri, GError** error)
 /**
  * upg_uri_configure_from_string:
  * @self: The URI object to reset.
- * @nuri: The new textual URI to be parsed.
+ * @nuri: (transfer none) (nullable): The new textual URI to be parsed.
  * @error: A #GError.
  *
  * > The URI is normalized while it is parsed. You cannot use
@@ -502,7 +502,7 @@ gboolean upg_uri_configure_from_string(UpgUri* _self, const gchar* nuri, GError*
     return upg_uri_set_internal_uri(_self, &parsed);
 }
 
-/* [this API may soon be public]
+/*
  * upg_uri_set_internal_uri:
  * @self: The URI to configure.
  * @uri: (transfer none) (not nullable): The UriUriA object to use.
@@ -601,9 +601,9 @@ static gchar* upg_uriuri_to_string(UriUriA* self)
 /**
  * upg_uri_set_scheme:
  * @self: The URI to set the scheme of.
- * @nscheme: (transfer none): The new scheme.
+ * @nscheme: (transfer none) (nullable): The new scheme.
  *
- * Sets the scheme of the URI.
+ * Sets (or, if @nscheme is #NULL, unsets) the scheme of the URI.
  *
  * Returns: Whether or not the setting was successful.
  */
@@ -627,7 +627,7 @@ gboolean upg_uri_set_scheme(UpgUri* _self, const gchar* nscheme)
  * Gets the current URI scheme for the given #UpgUri object. If the #UpgUri
  * hasn't been initialized, returns #NULL.
  *
- * Returns: The scheme of the URI.
+ * Returns: (transfer full) (nullable): The scheme of the URI.
  */
 gchar* upg_uri_get_scheme(UpgUri* uri)
 {
@@ -660,7 +660,7 @@ gchar* upg_uri_get_host(UpgUri* uri)
  *                   protocol.
  *
  * Gets the current host information as an array, with a value indicating the
- * protocol put into @uri. If @uri hasn't been initialized, returns #NULL.
+ * protocol put into @uri.
  *
  * |[<!-- language="C" -->
  * guint8 protocol;
@@ -706,8 +706,8 @@ guint8* upg_uri_get_host_data(UpgUri* _self, guint8* protocol)
  * @self: The URI to set the host of.
  * @host: (transfer none): The host to set the URI to.
  *
- * Sets the URI of @self to @nhost. The structured data is always reset after
- * this, but in future it might be set properly if @nhost is a valid IPvX
+ * Sets the URI of @self to @host. The structured data is always reset after
+ * this, but in future it might be set properly if @host is a valid IPvX
  * address.
  *
  * Returns: Whether or not the setting succeeded.
@@ -734,10 +734,11 @@ gboolean upg_uri_set_host(UpgUri* _self, const gchar* host)
  * been initialized, returns #NULL.
  *
  * Note that the list elements are owned by you. You might want to use
- * g_list_free_full() to free the list, instead of just g_list_free or similar.
+ * g_list_free_full() to free the list, instead of just g_list_free() or
+ * similar.
  *
- * Returns: (nullable) (transfer full) (element-type gchar*): The path segments,
- *                                                            or #NULL.
+ * Returns: (nullable) (transfer full) (element-type utf8): The path segments,
+ * or #NULL.
  */
 GList* upg_uri_get_path(UpgUri* _self)
 {
@@ -770,8 +771,9 @@ GList* upg_uri_get_path(UpgUri* _self)
  * Takes the path data from upg_uri_get_path() and puts it into a string, using
  * slashes as separators.
  *
- * Returns: (nullable) (transfer full): The stringified path segments, or #NULL
- *                                      if @uri hasn't been initialized.
+ * If @self hasn't been initialized, returns #NULL.
+ *
+ * Returns: (nullable) (transfer full): The stringified path segments, or #NULL.
  */
 gchar* upg_uri_get_path_str(UpgUri* _self)
 {
@@ -803,7 +805,7 @@ gchar* upg_uri_get_path_str(UpgUri* _self)
 /**
  * upg_uri_set_path:
  * @self: The #UpgUri to set the path of.
- * @list: (transfer none) (type GList(gchar*)): A list of path segments.
+ * @list: (transfer none) (element-type utf8): A list of path segments.
  *
  * Sets the path segments of @uri to @list.
  *
@@ -848,7 +850,8 @@ gboolean upg_uri_set_path(UpgUri* _self, GList* list)
  * value, it is stored as #NULL in the return value. If the query isn't set,
  * returns #NULL.
  *
- * Returns: (transfer full) (nullable): The query parameters.
+ * Returns: (transfer full) (nullable) (element-type utf8 utf8):
+ * The query parameters.
  */
 GHashTable* upg_uri_get_query(UpgUri* _self)
 {
@@ -877,7 +880,8 @@ gchar* upg_uri_get_query_str(UpgUri* self)
 /**
  * upg_uri_set_query:
  * @self: The URI object to set the query string of.
- * @table: The new query table.
+ * @table: (transfer none) (nullable) (element-type utf8 utf8): The new query
+ * table.
  *
  * Sets the current query parameters to @query.
  *
@@ -920,9 +924,11 @@ gboolean upg_uri_set_query(UpgUri* _self, GHashTable* query)
 /**
  * upg_uri_set_query_str:
  * @self: The URI to set the query string of.
- * @query: (transfer none): The new query string.
+ * @query: (transfer none) (nullable): The new query string.
  *
- * Sets the query string of @self to @query.
+ * Sets the query string of @self to @query. If @query is #NULL, unsets it.
+ *
+ * Returns: whether setting was successful
  */
 gboolean upg_uri_set_query_str(UpgUri* _self, const gchar* nq)
 {
@@ -988,9 +994,10 @@ GHashTable* upg_uri_get_fragment_params(UpgUri* uri)
 /**
  * upg_uri_set_fragment:
  * @self: The URI to set the fragment of.
- * @fragment: (transfer none): The new fragment of @self.
+ * @fragment: (transfer none) (nullable): The new fragment of @self.
  *
- * Sets the fragment of @self to @fragment.
+ * Sets the fragment of @self to @fragment. If @fragment is #NULL, unsets the
+ * fragment.
  *
  * Returns: Whether or not the setting succeeded.
  */
@@ -1142,7 +1149,7 @@ gchar* upg_uri_get_username(UpgUri* uri)
 /**
  * upg_uri_set_userinfo:
  * @self: The URI to set the user information of.
- * @userinfo: The new user information.
+ * @userinfo: (nullable) (transfer none): The new user information.
  *
  * Sets the user information of @self to @userinfo. If it is set to #NULL, then
  * it is removed.
@@ -1164,13 +1171,12 @@ gboolean upg_uri_set_userinfo(UpgUri* _self, const gchar* userinfo)
 /**
  * upg_uri_apply_reference:
  * @self: The URI to use as a base.
- * @reference: The reference to apply to @self.
+ * @reference: (transfer none) (not nullable): The reference to apply to @self.
  * @error: A #GError.
  *
  * Applies @reference to @self and returns the new URI.
  *
- * Returns: (transfer full) (nullable): The applied URI, or #NULL if @error is
- *          set.
+ * Returns: (transfer full): The applied URI, or #NULL if @error is set.
  */
 UpgUri* upg_uri_apply_reference(UpgUri* self, const gchar* reference_str, GError** error)
 {
@@ -1212,7 +1218,8 @@ cleanup:
 /**
  * upg_uri_subtract_to_reference:
  * @self: The minutend.
- * @subtrahend: The subtrahend (to be subtracted from @self).
+ * @subtrahend: (not nullable) (transfer none): The subtrahend (to be subtracted
+ * from @self).
  * @error: A #GError.
  *
  * Subtracts @subtrahend from @self to give a reference that can be used on
@@ -1221,7 +1228,7 @@ cleanup:
  *
  * If @error is set, returns #NULL.
  *
- * Returns: (transfer full) (nullable): The subtracted reference.
+ * Returns: (transfer full): The subtracted reference.
  */
 gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** err)
 {
@@ -1246,9 +1253,9 @@ gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** 
 
 /**
  * upg_uri_unref:
- * @self: The #UpgUri to unref.
+ * @self: (not nullable) (type UpgUri): The #UpgUri to unref.
  *
- * Wrapper for Vala over g_object_unref(). Don't worry if you're using C.
+ * Wrapper over g_object_unref().
  */
 void upg_uri_unref(gpointer self)
 {
@@ -1257,11 +1264,11 @@ void upg_uri_unref(gpointer self)
 
 /**
  * upg_uri_ref:
- * @self: The #UpgUri to ref.
+ * @self: (not nullable) (type UpgUri): The #UpgUri to ref.
  *
- * Wrapper for Vala over g_object_ref(). Don't worry if you're using C.
+ * Wrapper over g_object_ref().
  *
- * Returns: @self
+ * Returns: (type UpgUri) (transfer full): @self
  */
 gpointer upg_uri_ref(gpointer self)
 {
