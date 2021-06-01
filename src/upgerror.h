@@ -48,7 +48,6 @@ typedef enum {
     UPG_ERR_PARSE,
     UPG_ERR_NORMALIZE,
     UPG_ERR_REFERENCE,
-    UPG_ERR_TOSTRING,
 } UpgError;
 
 /**
