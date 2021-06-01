@@ -539,14 +539,19 @@ static gboolean upg_uri_set_internal_uri(UpgUri* _self, void* uri)
  * upg_uri_to_string:
  * @self: The URI to convert to a string.
  *
- * Converts the in-memory URI object into a string.
+ * Converts the in-memory URI object into a string. Returns #NULL if the object
+ * doesn't have a URI.
  *
- * Returns: (transfer full): The textual representation of the URI.
+ * Returns: (transfer full) (nullable): The textual representation of the URI,
+ * or #NULL if @self hasn't been initialized yet.
  */
 gchar* upg_uri_to_string(UpgUri* _self)
 {
     UpgUriPrivate* self = upg_uri_get_instance_private(_self);
-    g_assert(self->initialized);
+
+    if (self->initialized == FALSE) {
+        return NULL;
+    }
 
     if (!self->dirty) {
         return g_strdup(self->cached);
