@@ -15,7 +15,6 @@ UpgUri
 upg_uri_new
 upg_uri_configure_from_string
 upg_uri_to_string
-upg_uri_to_string_ign
 upg_uri_get_scheme
 upg_uri_set_scheme
 upg_uri_get_host
