@@ -34,7 +34,6 @@ static gchar* upg_uriuri_to_string(UriUriA* self);
 
 #define upg_free_utr(p) g_free((gchar*)p.first)
 #define upg_free_upsl(u) upg_free_upsl_(&u.pathHead, &u.pathTail)
-#define priv(x) ((UpgUriPrivate*)upg_uri_get_instance_private(x))
 
 enum {
     PROP_SCHEME = 1,
@@ -190,14 +189,15 @@ static void upg_uri_class_init(UpgUriClass* klass)
 
 static void upg_uri_init(UpgUri* self)
 {
-    priv(self)->dirty = TRUE;
+    UpgUriPrivate* priv = upg_uri_get_instance_private(self);
+    priv->dirty = TRUE;
 }
 
 static void upg_uri_dispose(GObject* self)
 {
     G_OBJECT_CLASS(upg_uri_parent_class)->dispose(self);
 
-    UpgUriPrivate* uri = priv(UPG_URI(self));
+    UpgUriPrivate* uri = upg_uri_get_instance_private(UPG_URI(self));
 
     if (!uri->initialized) {
         return;
@@ -468,7 +468,7 @@ gboolean upg_uri_configure_from_string(UpgUri* _self, const gchar* nuri, GError*
  */
 static gboolean upg_uri_set_internal_uri(UpgUri* _self, void* uri)
 {
-    UpgUriPrivate* self = priv(_self);
+    UpgUriPrivate* self = upg_uri_get_instance_private(_self);
 
     if (self->initialized) {
         upg_uri_dispose(G_OBJECT(self));
@@ -498,7 +498,7 @@ static gboolean upg_uri_set_internal_uri(UpgUri* _self, void* uri)
  */
 gchar* upg_uri_to_string(UpgUri* _self)
 {
-    UpgUriPrivate* self = priv(_self);
+    UpgUriPrivate* self = upg_uri_get_instance_private(_self);
     g_assert(self->initialized);
 
     if (!self->dirty) {
@@ -545,7 +545,7 @@ gchar* upg_uriuri_to_string(UriUriA* self)
  */
 gboolean upg_uri_set_scheme(UpgUri* _self, const gchar* nscheme)
 {
-    UpgUriPrivate* uri = priv(_self);
+    UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     uri->dirty = TRUE;
 
     if (uri->modified & MASK_SCHEME) {
@@ -573,7 +573,8 @@ gboolean upg_uri_set_scheme(UpgUri* _self, const gchar* nscheme)
  */
 gchar* upg_uri_get_scheme(UpgUri* uri)
 {
-    return str_from_uritextrange(priv(uri)->internal_uri.scheme);
+    UpgUriPrivate* priv = upg_uri_get_instance_private(uri);
+    return str_from_uritextrange(priv->internal_uri.scheme);
 }
 
 /**
@@ -590,7 +591,8 @@ gchar* upg_uri_get_scheme(UpgUri* uri)
  */
 gchar* upg_uri_get_host(UpgUri* uri)
 {
-    return str_from_uritextrange(priv(uri)->internal_uri.hostText);
+    UpgUriPrivate* priv = upg_uri_get_instance_private(uri);
+    return str_from_uritextrange(priv->internal_uri.hostText);
 }
 
 /**
@@ -620,7 +622,7 @@ gchar* upg_uri_get_host(UpgUri* uri)
  */
 guint8* upg_uri_get_host_data(UpgUri* _self, guint8* protocol)
 {
-    UpgUriPrivate* uri = priv(_self);
+    UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     g_assert(uri->initialized);
 
     UriHostDataA* data = &uri->internal_uri.hostData;
@@ -654,7 +656,7 @@ guint8* upg_uri_get_host_data(UpgUri* _self, guint8* protocol)
  */
 gboolean upg_uri_set_host(UpgUri* _self, const gchar* host)
 {
-    UpgUriPrivate* uri = priv(_self);
+    UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     g_assert(uri->initialized);
     uri->modified |= MASK_HOST;
     uri->dirty = TRUE;
@@ -681,7 +683,7 @@ gboolean upg_uri_set_host(UpgUri* _self, const gchar* host)
  */
 GList* upg_uri_get_path(UpgUri* _self)
 {
-    UpgUriPrivate* uri = priv(_self);
+    UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     if (!uri->initialized || uri->internal_uri.pathHead == NULL) {
         return NULL;
     }
@@ -715,7 +717,7 @@ GList* upg_uri_get_path(UpgUri* _self)
  */
 gchar* upg_uri_get_path_str(UpgUri* _self)
 {
-    UpgUriPrivate* uri = priv(_self);
+    UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     if (!uri->initialized) {
         return NULL;
     }
@@ -751,7 +753,7 @@ gchar* upg_uri_get_path_str(UpgUri* _self)
  */
 gboolean upg_uri_set_path(UpgUri* _self, GList* list)
 {
-    UpgUriPrivate* self = priv(_self);
+    UpgUriPrivate* self = upg_uri_get_instance_private(_self);
     if (self->modified & MASK_PATH) {
         upg_free_upsl(self->internal_uri);
     }
@@ -792,7 +794,7 @@ gboolean upg_uri_set_path(UpgUri* _self, GList* list)
  */
 GHashTable* upg_uri_get_query(UpgUri* _self)
 {
-    UpgUriPrivate* self = priv(_self);
+    UpgUriPrivate* self = upg_uri_get_instance_private(_self);
     gchar* query = str_from_uritextrange(self->internal_uri.query);
     GHashTable* ret = parse_query_string(query);
     g_free(query);
@@ -810,7 +812,8 @@ GHashTable* upg_uri_get_query(UpgUri* _self)
  */
 gchar* upg_uri_get_query_str(UpgUri* self)
 {
-    return str_from_uritextrange(priv(self)->internal_uri.query);
+    UpgUriPrivate* priv = upg_uri_get_instance_private(self);
+    return str_from_uritextrange(priv->internal_uri.query);
 }
 
 /**
@@ -865,7 +868,7 @@ gboolean upg_uri_set_query(UpgUri* _self, GHashTable* query)
  */
 gboolean upg_uri_set_query_str(UpgUri* _self, const gchar* nq)
 {
-    UpgUriPrivate* self = priv(_self);
+    UpgUriPrivate* self = upg_uri_get_instance_private(_self);
     if (self->modified & MASK_QUERY) {
         upg_free_utr(self->internal_uri.query);
     }
@@ -902,7 +905,8 @@ gboolean upg_uri_set_query_str(UpgUri* _self, const gchar* nq)
  */
 gchar* upg_uri_get_fragment(UpgUri* uri)
 {
-    return str_from_uritextrange(priv(uri)->internal_uri.fragment);
+    UpgUriPrivate* priv = upg_uri_get_instance_private(uri);
+    return str_from_uritextrange(priv->internal_uri.fragment);
 }
 
 /**
@@ -916,7 +920,8 @@ gchar* upg_uri_get_fragment(UpgUri* uri)
  */
 GHashTable* upg_uri_get_fragment_params(UpgUri* uri)
 {
-    gchar* fragment = str_from_uritextrange(priv(uri)->internal_uri.fragment);
+    UpgUriPrivate* priv = upg_uri_get_instance_private(uri);
+    gchar* fragment = str_from_uritextrange(priv->internal_uri.fragment);
     GHashTable* ret = parse_query_string(fragment);
     g_free(fragment);
     return ret;
@@ -933,7 +938,7 @@ GHashTable* upg_uri_get_fragment_params(UpgUri* uri)
  */
 gboolean upg_uri_set_fragment(UpgUri* _self, const gchar* fragment)
 {
-    UpgUriPrivate* uri = priv(_self);
+    UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     if (uri->modified & MASK_FRAGMENT) {
         upg_free_utr(uri->internal_uri.fragment);
     }
@@ -1006,7 +1011,8 @@ gboolean upg_uri_set_fragment_params(UpgUri* uri, GHashTable* params)
  */
 guint16 upg_uri_get_port(UpgUri* self)
 {
-    gchar* port_str = str_from_uritextrange(priv(self)->internal_uri.portText);
+    UpgUriPrivate* priv = upg_uri_get_instance_private(self);
+    gchar* port_str = str_from_uritextrange(priv->internal_uri.portText);
     guint ret = port_str ? strtoull(port_str, NULL, 10) : 0;
     g_free(port_str);
     return (guint16)ret;
@@ -1024,7 +1030,7 @@ guint16 upg_uri_get_port(UpgUri* self)
  */
 gboolean upg_uri_set_port(UpgUri* _self, guint16 port)
 {
-    UpgUriPrivate* self = priv(_self);
+    UpgUriPrivate* self = upg_uri_get_instance_private(_self);
     if (self->modified & MASK_PORT) {
         upg_free_utr(self->internal_uri.portText);
     }
@@ -1052,7 +1058,8 @@ gboolean upg_uri_set_port(UpgUri* _self, guint16 port)
  */
 gchar* upg_uri_get_userinfo(UpgUri* uri)
 {
-    return str_from_uritextrange(priv(uri)->internal_uri.userInfo);
+    UpgUriPrivate* priv = upg_uri_get_instance_private(uri);
+    return str_from_uritextrange(priv->internal_uri.userInfo);
 }
 
 /**
@@ -1067,7 +1074,8 @@ gchar* upg_uri_get_userinfo(UpgUri* uri)
  */
 gchar* upg_uri_get_username(UpgUri* uri)
 {
-    gchar* userinfo = str_from_uritextrange(priv(uri)->internal_uri.userInfo);
+    UpgUriPrivate* priv = upg_uri_get_instance_private(uri);
+    gchar* userinfo = str_from_uritextrange(priv->internal_uri.userInfo);
     if (userinfo == NULL) {
         return NULL;
     }
@@ -1091,7 +1099,7 @@ gchar* upg_uri_get_username(UpgUri* uri)
  */
 gboolean upg_uri_set_userinfo(UpgUri* _self, const gchar* userinfo)
 {
-    UpgUriPrivate* uri = priv(_self);
+    UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     if (uri->modified & MASK_USERINFO) {
         upg_free_utr(uri->internal_uri.userInfo);
     }
@@ -1119,6 +1127,7 @@ gboolean upg_uri_set_userinfo(UpgUri* _self, const gchar* userinfo)
  */
 UpgUri* upg_uri_apply_reference(UpgUri* self, const gchar* reference_str, GError** error)
 {
+    UpgUriPrivate* priv = upg_uri_get_instance_private(self);
     UpgUri* final = NULL;
 
     UriUriA reference;
@@ -1128,7 +1137,7 @@ UpgUri* upg_uri_apply_reference(UpgUri* self, const gchar* reference_str, GError
         return final;
     }
 
-    UriUriA* base = &priv(self)->internal_uri;
+    UriUriA* base = &priv->internal_uri;
     UriUriA applied;
     if ((ret = uriAddBaseUriA(&applied, &reference, base)) != URI_SUCCESS) {
         g_set_error(error, UPG_ERROR, UPG_ERR_REFERENCE, "Failed to apply reference: %s", upg_strurierror(ret));
@@ -1169,8 +1178,11 @@ cleanup:
  */
 gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** err)
 {
-    UriUriA* base = &priv(self)->internal_uri;
-    UriUriA* source = &priv(subtrahend)->internal_uri;
+    UpgUriPrivate* priv_self = upg_uri_get_instance_private(self);
+    UpgUriPrivate* priv_subtrahend = upg_uri_get_instance_private(subtrahend);
+
+    UriUriA* base = &priv_self->internal_uri;
+    UriUriA* source = &priv_subtrahend->internal_uri;
 
     UriUriA dest;
     gint ret;
