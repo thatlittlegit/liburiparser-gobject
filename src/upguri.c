@@ -398,7 +398,10 @@ static char* str_from_uritextrange(UriTextRangeA range)
 
 static UriTextRangeA uritextrange_from_str(const gchar* str)
 {
-    g_assert(str != NULL);
+    if (str == NULL) {
+        return (UriTextRangeA) { NULL, NULL };
+    }
+
     int len = strlen(str);
     gchar* dupd = g_strdup(str);
 
@@ -613,12 +616,6 @@ gboolean upg_uri_set_scheme(UpgUri* _self, const gchar* nscheme)
         upg_free_utr(uri->internal_uri.scheme);
     }
     uri->modified |= MASK_SCHEME;
-
-    if (nscheme == NULL) {
-        uri->internal_uri.scheme = (UriTextRangeA) { NULL, NULL };
-        return TRUE;
-    }
-
     uri->internal_uri.scheme = uritextrange_from_str(nscheme);
     return TRUE;
 }
@@ -1005,12 +1002,6 @@ gboolean upg_uri_set_fragment(UpgUri* _self, const gchar* fragment)
     }
     uri->dirty = TRUE;
     uri->modified |= MASK_FRAGMENT;
-
-    if (fragment == NULL) {
-        uri->internal_uri.fragment = (UriTextRangeA) { NULL, NULL };
-        return TRUE;
-    }
-
     uri->internal_uri.fragment = uritextrange_from_str(fragment);
     return TRUE;
 }
@@ -1166,11 +1157,6 @@ gboolean upg_uri_set_userinfo(UpgUri* _self, const gchar* userinfo)
     }
     uri->modified |= MASK_USERINFO;
     uri->dirty = TRUE;
-
-    if (userinfo == NULL) {
-        uri->internal_uri.userInfo = (UriTextRangeA) { NULL, NULL };
-    }
-
     uri->internal_uri.userInfo = uritextrange_from_str(userinfo);
     return TRUE;
 }
