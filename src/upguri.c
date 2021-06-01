@@ -573,16 +573,25 @@ gchar* upg_uri_to_string(UpgUri* _self)
  *
  * Returns: (transfer full): @self as a string.
  */
-gchar* upg_uriuri_to_string(UriUriA* self)
+static gchar* upg_uriuri_to_string(UriUriA* self)
 {
     int len;
-    g_assert(uriToStringCharsRequiredA(self, &len) == URI_SUCCESS);
+    int ret;
+    if ((ret = uriToStringCharsRequiredA(self, &len)) != URI_SUCCESS) {
+        g_error("Failed to calculate required length of URI string: %s", upg_strurierror(ret));
+    }
     len += 1;
 
     gchar* out = g_malloc0_n(len, sizeof(char));
     int written;
-    g_assert(uriToStringA(out, self, len, &written) == URI_SUCCESS);
-    g_assert(g_utf8_validate_len(out, written - 1, NULL));
+    if ((ret = uriToStringA(out, self, len, &written)) != URI_SUCCESS) {
+        g_error("Failed to convert a UpgUri to a string: %s", upg_strurierror(ret));
+    }
+
+    if (!g_utf8_validate_len(out, written - 1, NULL)) {
+        g_error("URI converted to a string wasn't valid UTF-8");
+    }
+
     return out;
 }
 
