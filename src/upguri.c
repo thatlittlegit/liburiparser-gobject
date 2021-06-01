@@ -604,10 +604,8 @@ static gchar* upg_uriuri_to_string(UriUriA* self)
  * @nscheme: (transfer none) (nullable): The new scheme.
  *
  * Sets (or, if @nscheme is #NULL, unsets) the scheme of the URI.
- *
- * Returns: Whether or not the setting was successful.
  */
-gboolean upg_uri_set_scheme(UpgUri* _self, const gchar* nscheme)
+void upg_uri_set_scheme(UpgUri* _self, const gchar* nscheme)
 {
     UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     uri->dirty = TRUE;
@@ -617,7 +615,6 @@ gboolean upg_uri_set_scheme(UpgUri* _self, const gchar* nscheme)
     }
     uri->modified |= MASK_SCHEME;
     uri->internal_uri.scheme = uritextrange_from_str(nscheme);
-    return TRUE;
 }
 
 /**
@@ -709,10 +706,8 @@ guint8* upg_uri_get_host_data(UpgUri* _self, guint8* protocol)
  * Sets the URI of @self to @host. The structured data is always reset after
  * this, but in future it might be set properly if @host is a valid IPvX
  * address.
- *
- * Returns: Whether or not the setting succeeded.
  */
-gboolean upg_uri_set_host(UpgUri* _self, const gchar* host)
+void upg_uri_set_host(UpgUri* _self, const gchar* host)
 {
     UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     g_assert(uri->initialized);
@@ -722,8 +717,6 @@ gboolean upg_uri_set_host(UpgUri* _self, const gchar* host)
     // FIXME we should probably parse the incoming host to check if it's IPvX
     uri->internal_uri.hostData = (UriHostDataA) { NULL, NULL, { NULL, NULL } };
     uri->internal_uri.hostText = uritextrange_from_str(host);
-
-    return TRUE;
 }
 
 /**
@@ -808,10 +801,8 @@ gchar* upg_uri_get_path_str(UpgUri* _self)
  * @list: (transfer none) (element-type utf8): A list of path segments.
  *
  * Sets the path segments of @uri to @list.
- *
- * Returns: Whether or not the setting succeeded.
  */
-gboolean upg_uri_set_path(UpgUri* _self, GList* list)
+void upg_uri_set_path(UpgUri* _self, GList* list)
 {
     UpgUriPrivate* self = upg_uri_get_instance_private(_self);
     if (self->modified & MASK_PATH) {
@@ -824,7 +815,7 @@ gboolean upg_uri_set_path(UpgUri* _self, GList* list)
         self->internal_uri.pathTail = NULL;
         self->modified |= MASK_PATH;
         self->dirty = TRUE;
-        return TRUE;
+        return;
     }
 
     UriPathSegmentA* segments = g_new0(UriPathSegmentA, len);
@@ -838,8 +829,6 @@ gboolean upg_uri_set_path(UpgUri* _self, GList* list)
     self->internal_uri.pathTail = &segments[len - 1];
     self->modified |= MASK_PATH;
     self->dirty = TRUE;
-
-    return TRUE;
 }
 
 /**
@@ -884,13 +873,12 @@ gchar* upg_uri_get_query_str(UpgUri* self)
  * table.
  *
  * Sets the current query parameters to @query.
- *
- * Returns: Whether or not the operation was successful.
  */
-gboolean upg_uri_set_query(UpgUri* _self, GHashTable* query)
+void upg_uri_set_query(UpgUri* _self, GHashTable* query)
 {
     if (query == NULL) {
-        return upg_uri_set_query_str(_self, NULL);
+        upg_uri_set_query_str(_self, NULL);
+        return;
     }
 
     GString* built = g_string_new(NULL);
@@ -917,8 +905,6 @@ gboolean upg_uri_set_query(UpgUri* _self, GHashTable* query)
     gchar* final = g_string_free(built, FALSE);
     upg_uri_set_query_str(_self, final);
     g_free(final);
-
-    return TRUE;
 }
 
 /**
@@ -927,10 +913,8 @@ gboolean upg_uri_set_query(UpgUri* _self, GHashTable* query)
  * @query: (transfer none) (nullable): The new query string.
  *
  * Sets the query string of @self to @query. If @query is #NULL, unsets it.
- *
- * Returns: whether setting was successful
  */
-gboolean upg_uri_set_query_str(UpgUri* _self, const gchar* nq)
+void upg_uri_set_query_str(UpgUri* _self, const gchar* nq)
 {
     UpgUriPrivate* self = upg_uri_get_instance_private(_self);
     if (self->modified & MASK_QUERY) {
@@ -942,13 +926,13 @@ gboolean upg_uri_set_query_str(UpgUri* _self, const gchar* nq)
 
     if (nq == NULL) {
         self->internal_uri.query = (UriTextRangeA) { NULL, NULL };
-        return TRUE;
+        return;
     }
 
     gint len = strlen(nq);
     if ((nq[0] == '?' && len <= 1) || (len == 0)) {
         self->internal_uri.query = (UriTextRangeA) { NULL, NULL };
-        return TRUE;
+        return;
     }
 
     if (nq[0] == '?') {
@@ -956,7 +940,6 @@ gboolean upg_uri_set_query_str(UpgUri* _self, const gchar* nq)
     }
 
     self->internal_uri.query = uritextrange_from_str(nq);
-    return TRUE;
 }
 
 /**
@@ -998,10 +981,8 @@ GHashTable* upg_uri_get_fragment_params(UpgUri* uri)
  *
  * Sets the fragment of @self to @fragment. If @fragment is #NULL, unsets the
  * fragment.
- *
- * Returns: Whether or not the setting succeeded.
  */
-gboolean upg_uri_set_fragment(UpgUri* _self, const gchar* fragment)
+void upg_uri_set_fragment(UpgUri* _self, const gchar* fragment)
 {
     UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     if (uri->modified & MASK_FRAGMENT) {
@@ -1010,7 +991,6 @@ gboolean upg_uri_set_fragment(UpgUri* _self, const gchar* fragment)
     uri->dirty = TRUE;
     uri->modified |= MASK_FRAGMENT;
     uri->internal_uri.fragment = uritextrange_from_str(fragment);
-    return TRUE;
 }
 
 /**
@@ -1019,13 +999,12 @@ gboolean upg_uri_set_fragment(UpgUri* _self, const gchar* fragment)
  * @table: (nullable) (transfer none): The new parameter table.
  *
  * Sets the fragment parameters of @self to @params.
- *
- * Returns: Whether or not the setting succeeded.
  */
-gboolean upg_uri_set_fragment_params(UpgUri* uri, GHashTable* params)
+void upg_uri_set_fragment_params(UpgUri* uri, GHashTable* params)
 {
     if (params == NULL) {
-        return upg_uri_set_fragment(uri, NULL);
+        upg_uri_set_fragment(uri, NULL);
+        return;
     }
 
     GString* made = g_string_new(NULL);
@@ -1048,9 +1027,8 @@ gboolean upg_uri_set_fragment_params(UpgUri* uri, GHashTable* params)
     }
 
     gchar* made_str = g_string_free(made, FALSE);
-    gboolean ret = upg_uri_set_fragment(uri, made_str);
+    upg_uri_set_fragment(uri, made_str);
     g_free(made_str);
-    return ret;
 }
 
 /**
@@ -1084,10 +1062,8 @@ guint16 upg_uri_get_port(UpgUri* self)
  *
  * Sets the port of @self to @port. There is no way to change the port to 0;
  * setting the port to zero will remove the port entirely from the URI.
- *
- * Returns: Whether or not the operation succeeded.
  */
-gboolean upg_uri_set_port(UpgUri* _self, guint16 port)
+void upg_uri_set_port(UpgUri* _self, guint16 port)
 {
     UpgUriPrivate* self = upg_uri_get_instance_private(_self);
     if (self->modified & MASK_PORT) {
@@ -1098,13 +1074,12 @@ gboolean upg_uri_set_port(UpgUri* _self, guint16 port)
 
     if (port == 0) {
         self->internal_uri.portText = (UriTextRangeA) { NULL, NULL };
-        return TRUE;
+        return;
     }
 
     gchar buf[6];
     g_ascii_dtostr(buf, 6, port);
     self->internal_uri.portText = uritextrange_from_str(buf);
-    return TRUE;
 }
 
 /**
@@ -1153,10 +1128,8 @@ gchar* upg_uri_get_username(UpgUri* uri)
  *
  * Sets the user information of @self to @userinfo. If it is set to #NULL, then
  * it is removed.
- *
- * Returns: Whether or not the operation was successful.
  */
-gboolean upg_uri_set_userinfo(UpgUri* _self, const gchar* userinfo)
+void upg_uri_set_userinfo(UpgUri* _self, const gchar* userinfo)
 {
     UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     if (uri->modified & MASK_USERINFO) {
@@ -1165,7 +1138,6 @@ gboolean upg_uri_set_userinfo(UpgUri* _self, const gchar* userinfo)
     uri->modified |= MASK_USERINFO;
     uri->dirty = TRUE;
     uri->internal_uri.userInfo = uritextrange_from_str(userinfo);
-    return TRUE;
 }
 
 /**

@@ -313,7 +313,7 @@ void query_is_resettable()
         new_order = g_list_append(new_order, "a");
         new_order = g_list_append(new_order, "1234567890");
 
-        g_assert_true(upg_uri_set_query(uri, new_table));
+        upg_uri_set_query(uri, new_table);
         gchar* new_str = upg_uri_get_query_str(uri);
         g_assert_nonnull(strstr(new_str, "a=b"));
         g_assert_nonnull(strstr(new_str, "1234567890=`1234567890-"));
@@ -324,7 +324,7 @@ void query_is_resettable()
         g_assert_cmpstr(g_hash_table_lookup(new_retd, "a"), ==, "b");
         g_assert_cmpstr(g_hash_table_lookup(new_retd, "1234567890"), ==, "`1234567890-");
 
-        g_assert_true(upg_uri_set_query_str(uri, "?nonono=no"));
+        upg_uri_set_query_str(uri, "?nonono=no");
         gchar* sec_str = upg_uri_get_query_str(uri);
         g_assert_cmpstr(sec_str, ==, "nonono=no");
         GHashTable* sec_retd = upg_uri_get_query(uri);
