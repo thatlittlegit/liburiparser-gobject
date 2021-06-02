@@ -221,7 +221,10 @@ static void upg_uri_init(UpgUri* self)
 
 static gboolean upg_uri_real_init(GInitable* initable, GCancellable* cancel, GError** error)
 {
+    g_return_val_if_fail(UPG_IS_URI(initable), FALSE);
     (void)cancel;
+    g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+
     UpgUri* self = UPG_URI(initable);
     UpgUriPrivate* priv = upg_uri_get_instance_private(self);
 
@@ -473,9 +476,10 @@ UpgUri* upg_uri_new(const gchar* uri, GError** error)
  *
  * Returns: Whether or not the operation succeeded.
  */
-gboolean upg_uri_configure_from_string(UpgUri* _self, const gchar* nuri, GError** error)
+gboolean upg_uri_configure_from_string(UpgUri* self, const gchar* nuri, GError** error)
 {
-    g_assert(error == NULL || *error == NULL);
+    g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+    g_return_val_if_fail(UPG_IS_URI(self), FALSE);
 
     if (nuri == NULL) {
         return TRUE;
@@ -495,7 +499,7 @@ gboolean upg_uri_configure_from_string(UpgUri* _self, const gchar* nuri, GError*
         return FALSE;
     }
 
-    return upg_uri_set_internal_uri(_self, &parsed);
+    return upg_uri_set_internal_uri(self, &parsed);
 }
 
 /*
@@ -514,6 +518,8 @@ gboolean upg_uri_configure_from_string(UpgUri* _self, const gchar* nuri, GError*
  */
 static gboolean upg_uri_set_internal_uri(UpgUri* _self, void* uri)
 {
+    g_return_val_if_fail(UPG_IS_URI(_self), FALSE);
+
     UpgUriPrivate* self = upg_uri_get_instance_private(_self);
 
     if (self->initialized) {
@@ -546,6 +552,8 @@ static gboolean upg_uri_set_internal_uri(UpgUri* _self, void* uri)
  */
 gchar* upg_uri_to_string(UpgUri* _self)
 {
+    g_return_val_if_fail(UPG_IS_URI(_self), NULL);
+
     UpgUriPrivate* self = upg_uri_get_instance_private(_self);
 
     if (self->initialized == FALSE) {
@@ -594,6 +602,8 @@ static gchar* upg_uriuri_to_string(UriUriA* self)
  */
 void upg_uri_set_scheme(UpgUri* _self, const gchar* nscheme)
 {
+    g_return_if_fail(UPG_IS_URI(_self));
+
     UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
 
     if (uri->modified & MASK_SCHEME) {
@@ -614,6 +624,8 @@ void upg_uri_set_scheme(UpgUri* _self, const gchar* nscheme)
  */
 gchar* upg_uri_get_scheme(UpgUri* uri)
 {
+    g_return_val_if_fail(UPG_IS_URI(uri), NULL);
+
     UpgUriPrivate* priv = upg_uri_get_instance_private(uri);
     return str_from_uritextrange(priv->internal_uri.scheme);
 }
@@ -632,6 +644,8 @@ gchar* upg_uri_get_scheme(UpgUri* uri)
  */
 gchar* upg_uri_get_host(UpgUri* uri)
 {
+    g_return_val_if_fail(UPG_IS_URI(uri), NULL);
+
     UpgUriPrivate* priv = upg_uri_get_instance_private(uri);
     return str_from_uritextrange(priv->internal_uri.hostText);
 }
@@ -663,6 +677,9 @@ gchar* upg_uri_get_host(UpgUri* uri)
  */
 guint8* upg_uri_get_host_data(UpgUri* _self, guint8* protocol)
 {
+    g_return_val_if_fail(UPG_IS_URI(_self), NULL);
+    g_return_val_if_fail(protocol != NULL, NULL);
+
     UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     g_assert(uri->initialized);
 
@@ -695,6 +712,8 @@ guint8* upg_uri_get_host_data(UpgUri* _self, guint8* protocol)
  */
 void upg_uri_set_host(UpgUri* _self, const gchar* host)
 {
+    g_return_if_fail(UPG_IS_URI(_self));
+
     UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     g_assert(uri->initialized);
     uri->modified |= MASK_HOST;
@@ -720,6 +739,8 @@ void upg_uri_set_host(UpgUri* _self, const gchar* host)
  */
 GList* upg_uri_get_path(UpgUri* _self)
 {
+    g_return_val_if_fail(UPG_IS_URI(_self), NULL);
+
     UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     if (!uri->initialized || uri->internal_uri.pathHead == NULL) {
         return NULL;
@@ -755,6 +776,8 @@ GList* upg_uri_get_path(UpgUri* _self)
  */
 gchar* upg_uri_get_path_str(UpgUri* _self)
 {
+    g_return_val_if_fail(UPG_IS_URI(_self), NULL);
+
     UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     if (!uri->initialized) {
         return NULL;
@@ -789,6 +812,8 @@ gchar* upg_uri_get_path_str(UpgUri* _self)
  */
 void upg_uri_set_path(UpgUri* _self, GList* list)
 {
+    g_return_if_fail(UPG_IS_URI(_self));
+
     UpgUriPrivate* self = upg_uri_get_instance_private(_self);
     if (self->modified & MASK_PATH) {
         upg_free_upsl(self->internal_uri);
@@ -827,6 +852,8 @@ void upg_uri_set_path(UpgUri* _self, GList* list)
  */
 GHashTable* upg_uri_get_query(UpgUri* _self)
 {
+    g_return_val_if_fail(UPG_IS_URI(_self), NULL);
+
     UpgUriPrivate* self = upg_uri_get_instance_private(_self);
     gchar* query = str_from_uritextrange(self->internal_uri.query);
     GHashTable* ret = parse_query_string(query);
@@ -845,6 +872,8 @@ GHashTable* upg_uri_get_query(UpgUri* _self)
  */
 gchar* upg_uri_get_query_str(UpgUri* self)
 {
+    g_return_val_if_fail(UPG_IS_URI(self), NULL);
+
     UpgUriPrivate* priv = upg_uri_get_instance_private(self);
     return str_from_uritextrange(priv->internal_uri.query);
 }
@@ -859,6 +888,8 @@ gchar* upg_uri_get_query_str(UpgUri* self)
  */
 void upg_uri_set_query(UpgUri* _self, GHashTable* query)
 {
+    g_return_if_fail(UPG_IS_URI(_self));
+
     if (query == NULL) {
         upg_uri_set_query_str(_self, NULL);
         return;
@@ -899,6 +930,8 @@ void upg_uri_set_query(UpgUri* _self, GHashTable* query)
  */
 void upg_uri_set_query_str(UpgUri* _self, const gchar* nq)
 {
+    g_return_if_fail(UPG_IS_URI(_self));
+
     UpgUriPrivate* self = upg_uri_get_instance_private(_self);
     if (self->modified & MASK_QUERY) {
         upg_free_utr(self->internal_uri.query);
@@ -934,6 +967,8 @@ void upg_uri_set_query_str(UpgUri* _self, const gchar* nq)
  */
 gchar* upg_uri_get_fragment(UpgUri* uri)
 {
+    g_return_val_if_fail(UPG_IS_URI(uri), NULL);
+
     UpgUriPrivate* priv = upg_uri_get_instance_private(uri);
     return str_from_uritextrange(priv->internal_uri.fragment);
 }
@@ -949,6 +984,8 @@ gchar* upg_uri_get_fragment(UpgUri* uri)
  */
 GHashTable* upg_uri_get_fragment_params(UpgUri* uri)
 {
+    g_return_val_if_fail(UPG_IS_URI(uri), NULL);
+
     UpgUriPrivate* priv = upg_uri_get_instance_private(uri);
     gchar* fragment = str_from_uritextrange(priv->internal_uri.fragment);
     GHashTable* ret = parse_query_string(fragment);
@@ -966,6 +1003,8 @@ GHashTable* upg_uri_get_fragment_params(UpgUri* uri)
  */
 void upg_uri_set_fragment(UpgUri* _self, const gchar* fragment)
 {
+    g_return_if_fail(UPG_IS_URI(_self));
+
     UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     if (uri->modified & MASK_FRAGMENT) {
         upg_free_utr(uri->internal_uri.fragment);
@@ -983,6 +1022,8 @@ void upg_uri_set_fragment(UpgUri* _self, const gchar* fragment)
  */
 void upg_uri_set_fragment_params(UpgUri* uri, GHashTable* params)
 {
+    g_return_if_fail(UPG_IS_URI(uri));
+
     if (params == NULL) {
         upg_uri_set_fragment(uri, NULL);
         return;
@@ -1029,6 +1070,8 @@ void upg_uri_set_fragment_params(UpgUri* uri, GHashTable* params)
  */
 guint16 upg_uri_get_port(UpgUri* self)
 {
+    g_return_val_if_fail(UPG_IS_URI(self), 0);
+
     UpgUriPrivate* priv = upg_uri_get_instance_private(self);
     gchar* port_str = str_from_uritextrange(priv->internal_uri.portText);
     guint ret = port_str ? strtoull(port_str, NULL, 10) : 0;
@@ -1046,6 +1089,8 @@ guint16 upg_uri_get_port(UpgUri* self)
  */
 void upg_uri_set_port(UpgUri* _self, guint16 port)
 {
+    g_return_if_fail(UPG_IS_URI(_self));
+
     UpgUriPrivate* self = upg_uri_get_instance_private(_self);
     if (self->modified & MASK_PORT) {
         upg_free_utr(self->internal_uri.portText);
@@ -1072,6 +1117,8 @@ void upg_uri_set_port(UpgUri* _self, guint16 port)
  */
 gchar* upg_uri_get_userinfo(UpgUri* uri)
 {
+    g_return_val_if_fail(UPG_IS_URI(uri), NULL);
+
     UpgUriPrivate* priv = upg_uri_get_instance_private(uri);
     return str_from_uritextrange(priv->internal_uri.userInfo);
 }
@@ -1088,6 +1135,8 @@ gchar* upg_uri_get_userinfo(UpgUri* uri)
  */
 gchar* upg_uri_get_username(UpgUri* uri)
 {
+    g_return_val_if_fail(UPG_IS_URI(uri), NULL);
+
     UpgUriPrivate* priv = upg_uri_get_instance_private(uri);
     gchar* userinfo = str_from_uritextrange(priv->internal_uri.userInfo);
     if (userinfo == NULL) {
@@ -1111,6 +1160,8 @@ gchar* upg_uri_get_username(UpgUri* uri)
  */
 void upg_uri_set_userinfo(UpgUri* _self, const gchar* userinfo)
 {
+    g_return_if_fail(UPG_IS_URI(_self));
+
     UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
     if (uri->modified & MASK_USERINFO) {
         upg_free_utr(uri->internal_uri.userInfo);
@@ -1131,6 +1182,10 @@ void upg_uri_set_userinfo(UpgUri* _self, const gchar* userinfo)
  */
 UpgUri* upg_uri_apply_reference(UpgUri* self, const gchar* reference_str, GError** error)
 {
+    g_return_val_if_fail(UPG_IS_URI(self), NULL);
+    g_return_val_if_fail(reference_str != NULL, NULL);
+    g_return_val_if_fail(error == NULL || *error == NULL, NULL);
+
     UpgUriPrivate* priv = upg_uri_get_instance_private(self);
     UpgUri* final = NULL;
 
@@ -1183,6 +1238,10 @@ cleanup:
  */
 gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** err)
 {
+    g_return_val_if_fail(UPG_IS_URI(self), NULL);
+    g_return_val_if_fail(UPG_IS_URI(subtrahend), NULL);
+    g_return_val_if_fail(err == NULL || *err == NULL, NULL);
+
     UpgUriPrivate* priv_self = upg_uri_get_instance_private(self);
     UpgUriPrivate* priv_subtrahend = upg_uri_get_instance_private(subtrahend);
 
