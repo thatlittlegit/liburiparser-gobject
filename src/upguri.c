@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "liburiparser-gobject.h"
+#include "upguri.h"
 #include "upgerror.h"
 #include <gio/gio.h>
 #include <uriparser/Uri.h>

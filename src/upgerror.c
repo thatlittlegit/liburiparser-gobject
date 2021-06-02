@@ -17,7 +17,7 @@
  *
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
-#include "liburiparser-gobject.h"
+#include "upgerror.h"
 #include <uriparser/UriBase.h>
 
 G_DEFINE_QUARK(upgerror, upg_error);
