@@ -40,7 +40,6 @@
  * @UPG_ERR_PARSE: An error occurred while parsing a URI or reference.
  * @UPG_ERR_NORMALIZE: An error occurred during normalization.
  * @UPG_ERR_REFERENCE: An error occurred applying or subtracting a reference.
- * @UPG_ERR_TOSTRING: An error occurred while converting the URI to a string.
  *
  * The types of errors that can occur in UPG.
  */
