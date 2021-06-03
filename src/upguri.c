@@ -87,7 +87,6 @@ typedef struct {
     GObject parent_instance;
 
     // private
-    gboolean initialized;
     UriUriA internal_uri;
     gint32 modified;
     UriPathSegmentA* original_segment;
@@ -249,10 +248,6 @@ static void upg_uri_reset(UpgUri* self)
 {
     UpgUriPrivate* uri = upg_uri_get_instance_private(UPG_URI(self));
 
-    if (!uri->initialized) {
-        return;
-    }
-
     if (uri->modified & MASK_SCHEME) {
         upg_free_utr(uri->internal_uri.scheme);
     }
@@ -291,7 +286,8 @@ static void upg_uri_reset(UpgUri* self)
     uri->internal_uri.fragment = uri->original_fragment;
     uri->internal_uri.portText = uri->original_port;
     uriFreeUriMembersA(&uri->internal_uri);
-    uri->initialized = FALSE;
+    memset(&uri->internal_uri, 0, sizeof(UriUriA));
+
     g_clear_pointer(&uri->wanted, g_free);
 }
 
@@ -535,9 +531,7 @@ static gboolean upg_uri_set_internal_uri(UpgUri* _self, void* uri)
 
     UpgUriPrivate* self = upg_uri_get_instance_private(_self);
 
-    if (self->initialized) {
-        upg_uri_reset(_self);
-    }
+    upg_uri_reset(_self);
 
     memcpy(&self->internal_uri, uri, sizeof(UriUriA));
 
@@ -550,7 +544,7 @@ static gboolean upg_uri_set_internal_uri(UpgUri* _self, void* uri)
     self->original_fragment = self->internal_uri.fragment;
     self->original_port = self->internal_uri.portText;
 
-    return self->initialized = TRUE;
+    return TRUE;
 }
 
 /**
@@ -560,18 +554,13 @@ static gboolean upg_uri_set_internal_uri(UpgUri* _self, void* uri)
  * Converts the in-memory URI object into a string. Returns %NULL if the object
  * doesn't have a URI.
  *
- * Returns: (transfer full) (nullable): The textual representation of the URI,
- * or %NULL if @self hasn't been initialized yet.
+ * Returns: (transfer full): The textual representation of the URI.
  */
 gchar* upg_uri_to_string(UpgUri* _self)
 {
     g_return_val_if_fail(UPG_IS_URI(_self), NULL);
 
     UpgUriPrivate* self = upg_uri_get_instance_private(_self);
-
-    if (self->initialized == FALSE) {
-        return NULL;
-    }
 
     return upg_uriuri_to_string(&self->internal_uri);
 }
@@ -682,9 +671,8 @@ gchar* upg_uri_get_host(UpgUri* uri)
  *   // IPv4
  * else if (protocol == 6)
  *   // IPv6
- * else if (protocol == 0)
- *   // `uri' wasn't initialized (bug in your code!)
  * else
+ *   // no host data, or IPvFuture
  *   g_assert_not_reached ();
  * ]|
  *
@@ -696,11 +684,6 @@ guint8* upg_uri_get_host_data(UpgUri* _self, guint8* protocol)
     g_return_val_if_fail(protocol != NULL, NULL);
 
     UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
-
-    if (!uri->initialized) {
-        *protocol = 0;
-        return NULL;
-    }
 
     UriHostDataA* data = &uri->internal_uri.hostData;
     if (data->ip4 != NULL) {
@@ -717,6 +700,7 @@ guint8* upg_uri_get_host_data(UpgUri* _self, guint8* protocol)
         return ret;
     }
 
+    *protocol = 0;
     return NULL;
 }
 
@@ -760,7 +744,7 @@ GList* upg_uri_get_path(UpgUri* _self)
     g_return_val_if_fail(UPG_IS_URI(_self), NULL);
 
     UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
-    if (!uri->initialized || uri->internal_uri.pathHead == NULL) {
+    if (uri->internal_uri.pathHead == NULL) {
         return NULL;
     }
 
@@ -795,11 +779,6 @@ GList* upg_uri_get_path(UpgUri* _self)
 gchar* upg_uri_get_path_str(UpgUri* _self)
 {
     g_return_val_if_fail(UPG_IS_URI(_self), NULL);
-
-    UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
-    if (!uri->initialized) {
-        return NULL;
-    }
 
     GString* ret = g_string_new(NULL);
     GList* ocurrent = upg_uri_get_path(_self);
