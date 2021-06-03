@@ -288,7 +288,7 @@ static void upg_uri_dispose(GObject* self)
     uri->internal_uri.portText = uri->original_port;
     uriFreeUriMembersA(&uri->internal_uri);
     uri->initialized = FALSE;
-    g_free(uri->wanted);
+    g_clear_pointer(&uri->wanted, g_free);
 }
 
 static void upg_uri_finalize(GObject* self)
