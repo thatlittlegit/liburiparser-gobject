@@ -664,7 +664,7 @@ gchar* upg_uri_get_host(UpgUri* uri)
  *                   protocol.
  *
  * Gets the current host information as an array, with a value indicating the
- * protocol put into @uri.
+ * protocol put into @uri. 0 is placed in @protocol if @self wasn't initialized.
  *
  * |[<!-- language="C" -->
  * guint8 protocol;
@@ -676,6 +676,8 @@ gchar* upg_uri_get_host(UpgUri* uri)
  *   // IPv4
  * else if (protocol == 6)
  *   // IPv6
+ * else if (protocol == 0)
+ *   // `uri' wasn't initialized (bug in your code!)
  * else
  *   g_assert_not_reached ();
  * ]|
@@ -688,7 +690,11 @@ guint8* upg_uri_get_host_data(UpgUri* _self, guint8* protocol)
     g_return_val_if_fail(protocol != NULL, NULL);
 
     UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
-    g_assert(uri->initialized);
+
+    if (!uri->initialized) {
+        *protocol = 0;
+        return NULL;
+    }
 
     UriHostDataA* data = &uri->internal_uri.hostData;
     if (data->ip4 != NULL) {
@@ -722,7 +728,6 @@ void upg_uri_set_host(UpgUri* _self, const gchar* host)
     g_return_if_fail(UPG_IS_URI(_self));
 
     UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
-    g_assert(uri->initialized);
     uri->modified |= MASK_HOST;
 
     // FIXME we should probably parse the incoming host to check if it's IPvX
