@@ -233,7 +233,6 @@ static gboolean upg_uri_real_init(GInitable* initable, GCancellable* cancel, GEr
     }
 
     if (!upg_uri_configure_from_string(self, priv->wanted, error)) {
-        g_free(priv->wanted);
         return FALSE;
     }
 
@@ -492,21 +491,28 @@ gboolean upg_uri_configure_from_string(UpgUri* self, const gchar* nuri, GError**
         return TRUE;
     }
 
+    char* dupd = g_strdup(nuri);
+
     UriUriA parsed;
     int ret = 0;
-    if ((ret = uriParseSingleUriA(&parsed, nuri, NULL)) != URI_SUCCESS) {
+    if ((ret = uriParseSingleUriA(&parsed, dupd, NULL)) != URI_SUCCESS) {
         g_set_error(error, upg_error_quark(), UPG_ERR_PARSE,
             "Failed to parse URI: %s", upg_strurierror(ret));
+        g_free(dupd);
         return FALSE;
     }
 
     if ((ret = uriNormalizeSyntaxA(&parsed)) != URI_SUCCESS) {
         g_set_error(error, upg_error_quark(), UPG_ERR_NORMALIZE,
             "Failed to normalize URI: %s", upg_strurierror(ret));
+        g_free(dupd);
         return FALSE;
     }
 
-    return upg_uri_set_internal_uri(self, &parsed);
+    gboolean success = upg_uri_set_internal_uri(self, &parsed);
+    UpgUriPrivate* priv = upg_uri_get_instance_private(self);
+    priv->wanted = dupd;
+    return success;
 }
 
 /*
