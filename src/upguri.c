@@ -26,6 +26,7 @@ static void upg_uri_initable_init(GInitableIface*);
 static void upg_uri_init(UpgUri*);
 static gboolean upg_uri_real_init(GInitable*, GCancellable* cancel, GError** error);
 static void upg_uri_dispose(GObject*);
+static void upg_uri_reset(UpgUri*);
 static void upg_uri_finalize(GObject*);
 static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GParamSpec* spec);
 static void upg_uri_get_property(GObject* obj, guint id, GValue* value, GParamSpec* spec);
@@ -242,7 +243,11 @@ static gboolean upg_uri_real_init(GInitable* initable, GCancellable* cancel, GEr
 static void upg_uri_dispose(GObject* self)
 {
     G_OBJECT_CLASS(upg_uri_parent_class)->dispose(self);
+    upg_uri_reset(UPG_URI(self));
+}
 
+static void upg_uri_reset(UpgUri* self)
+{
     UpgUriPrivate* uri = upg_uri_get_instance_private(UPG_URI(self));
 
     if (!uri->initialized) {
@@ -525,7 +530,7 @@ static gboolean upg_uri_set_internal_uri(UpgUri* _self, void* uri)
     UpgUriPrivate* self = upg_uri_get_instance_private(_self);
 
     if (self->initialized) {
-        upg_uri_dispose(G_OBJECT(self));
+        upg_uri_reset(_self);
     }
 
     memcpy(&self->internal_uri, uri, sizeof(UriUriA));
