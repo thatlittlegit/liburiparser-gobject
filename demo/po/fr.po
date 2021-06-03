@@ -1,0 +1,32 @@
+#: demo/wizard.c:45
+msgid "Scheme"
+msgstr "Schéma"
+
+#: demo/wizard.c:49
+msgid "Identification"
+msgstr "Authentification"
+
+#: demo/wizard.c:53
+# doesn't seem quite right, but good enough for now
+msgid "Hostname"
+msgstr "Domaine"
+
+#: demo/wizard.c:57
+msgid "Port"
+msgstr "Port"
+
+#: demo/wizard.c:61
+msgid "Path"
+msgstr "Nom"
+
+#: demo/wizard.c:65
+msgid "Fragment"
+msgstr "Signet"
+
+#: demo/wizard.c:69
+msgid "Query"
+msgstr "Données"
+
+#: demo/wizard.c:91
+msgid "URI Wizard"
+msgstr "Génie pour des URIs"

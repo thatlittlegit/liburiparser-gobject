@@ -1,0 +1,50 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the uri-wizard package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: uri-wizard\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-06-03 18:28-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: demo/wizard.c:45
+msgid "Scheme"
+msgstr ""
+
+#: demo/wizard.c:49
+msgid "Identification"
+msgstr ""
+
+#: demo/wizard.c:53
+msgid "Hostname"
+msgstr ""
+
+#: demo/wizard.c:57
+msgid "Port"
+msgstr ""
+
+#: demo/wizard.c:61
+msgid "Path"
+msgstr ""
+
+#: demo/wizard.c:65
+msgid "Fragment"
+msgstr ""
+
+#: demo/wizard.c:69
+msgid "Query"
+msgstr ""
+
+#: demo/wizard.c:91
+msgid "URI Wizard"
+msgstr ""

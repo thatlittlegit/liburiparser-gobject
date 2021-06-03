@@ -52,7 +52,7 @@ static void wiz_property_pair_init(WizPropertyPair* self)
 
     g_object_bind_property(self->entry, "text", self, "value", G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
 
-    gtk_widget_set_size_request(self->label, 100, 0);
+    gtk_widget_set_size_request(self->label, 150, 0);
     gtk_label_set_xalign(GTK_LABEL(self->label), 1);
     gtk_widget_set_sensitive(self->label, FALSE);
     gtk_entry_set_has_frame(GTK_ENTRY(self->entry), FALSE);

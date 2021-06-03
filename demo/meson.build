@@ -2,6 +2,15 @@ if get_option('demo') == false
   subdir_done()
 endif
 
+configure_file(
+  input: 'config.h.in',
+  output: 'config.h',
+  configuration: configuration_data({
+    'DATADIR': get_option('prefix') / get_option('datadir'),
+    'GETTEXT_PACKAGE': 'uri-wizard',
+  }),
+)
+
 demo_sources = [
   'wizard.c',
   'propertypair.c',
@@ -14,3 +23,5 @@ executable('uri-wizard', demo_sources,
   include_directories: '../src',
   pie: true,
 )
+
+subdir('po')
