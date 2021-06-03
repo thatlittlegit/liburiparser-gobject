@@ -246,7 +246,7 @@ void path_segments_are_right()
         list = g_list_append(list, "successfully");
         upg_uri_set_path(uri, list);
         GList* set = upg_uri_get_path(uri);
-        g_list_free(list);
+        // list is free'd later
         g_assert_true(compare_list_and_str(set, "/path/set/successfully", '/'));
         g_list_free_full(set, g_free);
         gchar* sets = upg_uri_get_path_str(uri);
@@ -257,6 +257,13 @@ void path_segments_are_right()
         g_free(sett);
 
         upg_uri_set_path(uri, NULL);
+        upg_uri_set_path_str(uri, "/path/set/successfully");
+        GList* given = upg_uri_get_path(uri);
+        g_assert_true(compare_lists(given, list));
+
+        g_list_free(list);
+        g_list_free_full(given, g_free);
+
         g_object_unref(uri);
     }
 }

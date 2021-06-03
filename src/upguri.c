@@ -134,10 +134,9 @@ static void upg_uri_class_init(UpgUriClass* klass)
         G_PARAM_READWRITE);
     params[PROP_PATHSTR] = g_param_spec_string("path-str",
         "Path string",
-        "The path segments of this object, represented as a string. "
-        "May be settable in future.",
+        "The path segments of this object, represented as a string.",
         NULL,
-        G_PARAM_READABLE);
+        G_PARAM_READWRITE);
     /**
      * UpgUri:query: (type GHashTable(utf8,utf8))
      *
@@ -311,6 +310,9 @@ static void upg_uri_set_property(GObject* obj, guint id, const GValue* value, GP
         break;
     case PROP_PATH:
         upg_uri_set_path(self, g_value_get_pointer(value));
+        break;
+    case PROP_PATHSTR:
+        upg_uri_set_path_str(self, g_value_get_string(value));
         break;
     case PROP_QUERY:
         upg_uri_set_query(self, g_value_get_boxed(value));
@@ -837,6 +839,39 @@ void upg_uri_set_path(UpgUri* _self, GList* list)
     self->internal_uri.pathHead = segments;
     self->internal_uri.pathTail = &segments[len - 1];
     self->modified |= MASK_PATH;
+}
+
+/**
+ * upg_uri_set_path_str:
+ * @self: The #UpgUri to set the path of.
+ * @path: (transfer none) (nullable): The new path.
+ *
+ * Sets the path of @self to @path. @path must start with a slash in order to
+ * be valid; this is checked internally. @path can also be %NULL to unset the
+ * path.
+ */
+void upg_uri_set_path_str(UpgUri* self, const char* path)
+{
+    g_return_if_fail(UPG_IS_URI(self));
+    g_return_if_fail(path == NULL || *path == '/');
+
+    if (path == NULL) {
+        upg_uri_set_path(self, NULL);
+        return;
+    }
+
+    /* is this right? */
+    char** broken = g_strsplit(path, "/", 0);
+    GList* segments = NULL;
+    for (int i = 1; broken[i] != NULL; ++i) {
+        segments = g_list_prepend(segments, broken[i]);
+    }
+
+    segments = g_list_reverse(segments);
+    upg_uri_set_path(self, segments);
+    g_strfreev(broken);
+    g_list_free(segments);
+    return;
 }
 
 /**
