@@ -483,7 +483,7 @@ gboolean upg_uri_configure_from_string(UpgUri* self, const gchar* nuri, GError**
     g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
     g_return_val_if_fail(UPG_IS_URI(self), FALSE);
 
-    if (nuri == NULL) {
+    if (nuri == NULL || *nuri == '\0') {
         return TRUE;
     }
 
