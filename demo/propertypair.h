@@ -27,7 +27,7 @@ G_BEGIN_DECLS
 #define WIZ_TYPE_PROPERTY_PAIR wiz_property_pair_get_type()
 G_DECLARE_FINAL_TYPE(WizPropertyPair, wiz_property_pair, WIZ, PROPERTY_PAIR, GtkBox)
 
-WizPropertyPair* wiz_property_pair_new(const gchar* id, const gchar* label);
+GtkWidget* wiz_property_pair_new(const gchar* id, const gchar* label);
 
 const gchar* wiz_property_pair_get_id(WizPropertyPair* pair);
 void wiz_property_pair_set_id(WizPropertyPair* pair, const gchar* id);

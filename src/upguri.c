@@ -545,6 +545,16 @@ static gboolean upg_uri_set_internal_uri(UpgUri* _self, void* uri)
     self->original_fragment = self->internal_uri.fragment;
     self->original_port = self->internal_uri.portText;
 
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_SCHEME]);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_USERINFO]);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_HOST]);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_PATH]);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_PATHSTR]);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_QUERY]);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_QUERYSTR]);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_FRAGMENT]);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_FRAGMENTPARAMS]);
+
     return TRUE;
 }
 
@@ -614,6 +624,7 @@ void upg_uri_set_scheme(UpgUri* _self, const gchar* nscheme)
     }
     uri->modified |= MASK_SCHEME;
     uri->internal_uri.scheme = uritextrange_from_str(nscheme);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_SCHEME]);
 }
 
 /**
@@ -724,6 +735,7 @@ void upg_uri_set_host(UpgUri* _self, const gchar* host)
     // FIXME we should probably parse the incoming host to check if it's IPvX
     uri->internal_uri.hostData = (UriHostDataA) { NULL, NULL, { NULL, NULL } };
     uri->internal_uri.hostText = uritextrange_from_str(host);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_HOST]);
 }
 
 /**
@@ -835,6 +847,8 @@ void upg_uri_set_path(UpgUri* _self, GList* list)
     self->internal_uri.pathHead = segments;
     self->internal_uri.pathTail = &segments[len - 1];
     self->modified |= MASK_PATH;
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_PATH]);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_PATHSTR]);
 }
 
 /**
@@ -986,6 +1000,8 @@ void upg_uri_set_query_str(UpgUri* _self, const gchar* nq)
     }
 
     self->internal_uri.query = uritextrange_from_str(nq);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_QUERY]);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_QUERYSTR]);
 }
 
 /**
@@ -1042,6 +1058,8 @@ void upg_uri_set_fragment(UpgUri* _self, const gchar* fragment)
     }
     uri->modified |= MASK_FRAGMENT;
     uri->internal_uri.fragment = uritextrange_from_str(fragment);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_FRAGMENT]);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_FRAGMENTPARAMS]);
 }
 
 /**
@@ -1136,6 +1154,7 @@ void upg_uri_set_port(UpgUri* _self, guint16 port)
     gchar buf[6];
     g_ascii_dtostr(buf, 6, port);
     self->internal_uri.portText = uritextrange_from_str(buf);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_PORT]);
 }
 
 /**
@@ -1199,6 +1218,7 @@ void upg_uri_set_userinfo(UpgUri* _self, const gchar* userinfo)
     }
     uri->modified |= MASK_USERINFO;
     uri->internal_uri.userInfo = uritextrange_from_str(userinfo);
+    g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_USERINFO]);
 }
 
 /**

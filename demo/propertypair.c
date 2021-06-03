@@ -37,7 +37,6 @@ struct _WizPropertyPair {
     GtkBox parent_instance;
 
     // <private>
-    gboolean suppress_events;
     gchar* id;
     GtkWidget* label;
     GtkWidget* entry;
@@ -45,20 +44,13 @@ struct _WizPropertyPair {
 
 G_DEFINE_TYPE(WizPropertyPair, wiz_property_pair, GTK_TYPE_BOX);
 
-static void wiz_property_pair_emit_changed(GtkEntry* buffer, WizPropertyPair* self)
-{
-    if (!self->suppress_events) {
-        g_signal_emit(self, signals[SIGNAL_CHANGED], 0);
-    }
-}
-
 static void wiz_property_pair_init(WizPropertyPair* self)
 {
     gtk_box_set_spacing(&self->parent_instance, 16);
     self->label = gtk_label_new("");
     self->entry = gtk_entry_new();
 
-    g_signal_connect(self->entry, "changed", G_CALLBACK(wiz_property_pair_emit_changed), self);
+    g_object_bind_property(self->entry, "text", self, "value", G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
 
     gtk_widget_set_size_request(self->label, 100, 0);
     gtk_label_set_xalign(GTK_LABEL(self->label), 1);
@@ -93,11 +85,7 @@ static void wiz_property_pair_set_property(GObject* object, guint property_id, c
         gtk_label_set_text(GTK_LABEL(private->label), value);
         break;
     case PROP_VALUE:
-    private
-        ->suppress_events = TRUE;
         gtk_entry_set_text(GTK_ENTRY(private->entry), value);
-    private
-        ->suppress_events = FALSE;
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
@@ -146,9 +134,9 @@ static void wiz_property_pair_class_init(WizPropertyPairClass* klass)
         NULL);
 }
 
-WizPropertyPair* wiz_property_pair_new(const gchar* id, const gchar* label)
+GtkWidget* wiz_property_pair_new(const gchar* id, const gchar* label)
 {
-    return g_object_new(WIZ_TYPE_PROPERTY_PAIR, "title", label, "id", id, NULL);
+    return GTK_WIDGET(g_object_new(WIZ_TYPE_PROPERTY_PAIR, "title", label, "id", id, NULL));
 }
 
 const gchar* wiz_property_pair_get_id(WizPropertyPair* self)
