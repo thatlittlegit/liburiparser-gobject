@@ -19,3 +19,4 @@
  */
 #define GETTEXT_PACKAGE "@GETTEXT_PACKAGE@"
 #define DATADIR "@DATADIR@"
+#define VERSION "@VERSION@"

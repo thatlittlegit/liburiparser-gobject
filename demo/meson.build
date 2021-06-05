@@ -8,6 +8,7 @@ configure_file(
   configuration: configuration_data({
     'DATADIR': get_option('prefix') / get_option('datadir'),
     'GETTEXT_PACKAGE': 'uri-wizard',
+    'VERSION': meson.project_version(),
   }),
 )
 

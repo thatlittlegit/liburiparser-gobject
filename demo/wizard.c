@@ -32,6 +32,8 @@ static void new_window(GtkApplication*, gpointer);
 static void update_uri_field(UpgUri* uri, GParamSpec* spec, GtkEntry* entry);
 static void update_uri_data(GtkEntry* entry, UpgUri* uri);
 
+static void about(GtkApplication* app);
+
 static void gtk_entry_set_error(GtkEntry* entry, gboolean val)
 {
     GtkStyleContext* ctx = gtk_widget_get_style_context(GTK_WIDGET(entry));
@@ -114,6 +116,29 @@ static void update_uri_data(GtkEntry* entry, UpgUri* uri)
     gtk_entry_set_error(entry, !upg_uri_configure_from_string(uri, text, NULL));
 }
 
+static void about(GtkApplication* app)
+{
+    g_return_if_fail(GTK_IS_APPLICATION(app));
+
+    GtkAboutDialog* dialog = GTK_ABOUT_DIALOG(gtk_about_dialog_new());
+
+    gtk_about_dialog_set_program_name(dialog, _("URI Wizard"));
+    gtk_about_dialog_set_comments(dialog, _("A tool to explore URIs"));
+    gtk_about_dialog_set_copyright(dialog, _("Copyright 2020-2021 thatlittlegit"));
+    gtk_about_dialog_set_license_type(dialog, GTK_LICENSE_LGPL_3_0);
+
+    gtk_about_dialog_set_authors(dialog, (const char*[]){ "thatlittlegit", NULL });
+    gtk_about_dialog_set_translator_credits(dialog, _("translator-credits"));
+
+    GtkWindow* current = gtk_application_get_active_window(app);
+    gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
+    if (current != NULL) {
+        gtk_window_set_transient_for(GTK_WINDOW(dialog), current);
+    }
+
+    gtk_window_present(GTK_WINDOW(dialog));
+}
+
 int main(int argc, char** argv)
 {
     setlocale(LC_ALL, "");
@@ -123,6 +148,12 @@ int main(int argc, char** argv)
 
     g_log_set_always_fatal(G_LOG_LEVEL_WARNING);
     GtkApplication* app = gtk_application_new("tk.thatlittlegit.liburiparser-gobject-demo", G_APPLICATION_FLAGS_NONE);
+
+    GSimpleAction* about_action = g_simple_action_new("about", NULL);
+    g_signal_connect_object(about_action, "activate", G_CALLBACK(about), app, G_CONNECT_SWAPPED);
+    g_action_map_add_action(G_ACTION_MAP(app), G_ACTION(about_action));
+    g_clear_pointer(&about_action, g_object_unref);
+
     g_signal_connect(app, "activate", G_CALLBACK(new_window), NULL);
     gint status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);

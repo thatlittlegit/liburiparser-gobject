@@ -1,32 +1,61 @@
-#: demo/wizard.c:45
+# Copyright (C) 2021 thatlittlegit
+# This file is part of the liburiparser-gobject project.
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: uri-wizard\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-06-04 15:02-0400\n"
+"PO-Revision-Date: 2021-06-04 15:01-0400\n"
+"Last-Translator: thatlittlegit <personal@thatlittlegit.tk>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: demo/wizard.c:50
 msgid "Scheme"
 msgstr "Schéma"
 
-#: demo/wizard.c:49
+#: demo/wizard.c:54
 msgid "Identification"
 msgstr "Authentification"
 
-#: demo/wizard.c:53
 # doesn't seem quite right, but good enough for now
+#: demo/wizard.c:58
 msgid "Hostname"
 msgstr "Domaine"
 
-#: demo/wizard.c:57
+#: demo/wizard.c:62
 msgid "Port"
 msgstr "Port"
 
-#: demo/wizard.c:61
+#: demo/wizard.c:66
 msgid "Path"
 msgstr "Nom"
 
-#: demo/wizard.c:65
+#: demo/wizard.c:70
 msgid "Fragment"
 msgstr "Signet"
 
-#: demo/wizard.c:69
+#: demo/wizard.c:74
 msgid "Query"
-msgstr "Données"
+msgstr "Donnes"
 
-#: demo/wizard.c:91
+#: demo/wizard.c:96 demo/wizard.c:125
 msgid "URI Wizard"
 msgstr "Génie pour des URIs"
+
+#: demo/wizard.c:126
+msgid "A tool to explore URIs"
+msgstr "Un outil pour explorer des URIs"
+
+#: demo/wizard.c:127
+msgid "Copyright 2020-2021 thatlittlegit"
+msgstr "Copyright 2020-2021 thatlittlegit"
+
+#: demo/wizard.c:131
+msgid "translator-credits"
+msgstr "translator-credits"

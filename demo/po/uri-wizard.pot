@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: uri-wizard\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-06-03 18:28-0400\n"
+"POT-Creation-Date: 2021-06-04 15:02-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,34 +17,46 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: demo/wizard.c:45
+#: demo/wizard.c:50
 msgid "Scheme"
 msgstr ""
 
-#: demo/wizard.c:49
+#: demo/wizard.c:54
 msgid "Identification"
 msgstr ""
 
-#: demo/wizard.c:53
+#: demo/wizard.c:58
 msgid "Hostname"
 msgstr ""
 
-#: demo/wizard.c:57
+#: demo/wizard.c:62
 msgid "Port"
 msgstr ""
 
-#: demo/wizard.c:61
+#: demo/wizard.c:66
 msgid "Path"
 msgstr ""
 
-#: demo/wizard.c:65
+#: demo/wizard.c:70
 msgid "Fragment"
 msgstr ""
 
-#: demo/wizard.c:69
+#: demo/wizard.c:74
 msgid "Query"
 msgstr ""
 
-#: demo/wizard.c:91
+#: demo/wizard.c:96 demo/wizard.c:125
 msgid "URI Wizard"
+msgstr ""
+
+#: demo/wizard.c:126
+msgid "A tool to explore URIs"
+msgstr ""
+
+#: demo/wizard.c:127
+msgid "Copyright 2020-2021 thatlittlegit"
+msgstr ""
+
+#: demo/wizard.c:131
+msgid "translator-credits"
 msgstr ""

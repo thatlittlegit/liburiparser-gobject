@@ -10,10 +10,25 @@
         <property name="can_focus">False</property>
         <property name="show_close_button">True</property>
         <child type="title">
-          <object class="GtkEntry" id="uri-field">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="hexpand">True</property>
+          <object class="GtkBox">
+            <property name="orientation">horizontal</property>
+            <child>
+              <object class="GtkEntry" id="uri-field">
+                <property name="can_focus">True</property>
+                <property name="hexpand">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuButton">
+                <property name="margin-start">4</property>
+                <property name="menu-model">menu</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="icon-name">open-menu-symbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
           </object>
         </child>
       </object>
@@ -39,4 +54,16 @@
       </object>
     </child>
   </object>
+  <menu id="menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Help</attribute>
+        <attribute name="action">app.help</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">About</attribute>
+        <attribute name="action">app.about</attribute>
+      </item>
+    </section>
+  </menu>
 </interface>
