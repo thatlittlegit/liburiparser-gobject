@@ -17,7 +17,7 @@ add_global_arguments('-DLIBURIPARSER_GOBJECT_COMPILATION',
 )
 
 version_conf = configuration_data()
-version_split = meson.project_version().split('.')
+version_split = meson.project_version().split('-')[0].split('.')
 version_conf.set('VERSION', meson.project_version())
 version_conf.set('MAJOR_VERSION', version_split[0])
 version_conf.set('MINOR_VERSION', version_split[1])
