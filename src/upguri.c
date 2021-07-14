@@ -1313,6 +1313,55 @@ gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** 
 }
 
 /**
+ * upg_uri_copy:
+ * @self: (not nullable): The #UpgUri to copy.
+ *
+ * Copies a #UpgUri, creating a new object with the same properties that is not
+ * connected to the old one.
+ *
+ * Returns: (transfer full): a new #UpgUri with the same properties as the old.
+ */
+UpgUri* upg_uri_copy(UpgUri* self)
+{
+    g_return_val_if_fail(self != NULL, NULL);
+
+    GError* err = NULL;
+    UpgUri* new_uri = upg_uri_new(NULL, &err);
+
+    // an error should only occur with a parsing failure, which should never
+    // happen if we pass NULL
+    g_assert(err == NULL);
+    g_assert(new_uri != NULL);
+
+    // TODO it'd be nice to avoid all the unnecessary copies
+    char* scheme = upg_uri_get_scheme(self);
+    char* auth = upg_uri_get_userinfo(self);
+    char* host = upg_uri_get_host(self);
+    guint16 port = upg_uri_get_port(self);
+    GList* path = upg_uri_get_path(self);
+    char* query = upg_uri_get_query_str(self);
+    char* fragment = upg_uri_get_fragment(self);
+
+    upg_uri_set_scheme(new_uri, scheme);
+    upg_uri_set_userinfo(new_uri, auth);
+    upg_uri_set_host(new_uri, host);
+    upg_uri_set_port(new_uri, port);
+    upg_uri_set_path(new_uri, path);
+    upg_uri_set_query_str(new_uri, query);
+    upg_uri_set_fragment(new_uri, fragment);
+
+    g_free(scheme);
+    g_free(auth);
+    g_free(host);
+    // port is a guint16, no need to free
+    g_list_free_full(path, g_free);
+    g_free(query);
+    g_free(fragment);
+
+    return new_uri;
+}
+
+/**
  * upg_uri_unref:
  * @self: (not nullable) (type UpgUri): The #UpgUri to unref.
  *

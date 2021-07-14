@@ -3,6 +3,7 @@ if get_option('tests') == false
 endif
 
 tests = [
+  'copy.test.c',
   'fragments.test.c',
   'parser.test.c',
   'port.test.c',

@@ -65,6 +65,7 @@ void upg_uri_set_userinfo(UpgUri* self, const gchar* userinfo);
 UpgUri* upg_uri_apply_reference(UpgUri* self, const gchar* reference, GError** error);
 gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** error);
 
+UpgUri* upg_uri_copy(UpgUri* self);
 gpointer upg_uri_ref(gpointer self);
 void upg_uri_unref(gpointer self);
 G_END_DECLS
