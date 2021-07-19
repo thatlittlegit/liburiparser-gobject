@@ -37,6 +37,12 @@ struct _UpgUriClass {
     gpointer padding[16];
 };
 
+typedef enum {
+    UPG_HIERARCHY_LAX = 0,
+    UPG_HIERARCHY_STRICT = 1,
+    UPG_HIERARCHY_NOTSELF = 2,
+} UpgHierarchyFlags;
+
 UpgUri* upg_uri_new(const gchar* uri, GError** error);
 gboolean upg_uri_configure_from_string(UpgUri* self, const gchar* nuri, GError** error);
 gchar* upg_uri_to_string(UpgUri* self);
@@ -64,6 +70,7 @@ gchar* upg_uri_get_username(UpgUri* self);
 void upg_uri_set_userinfo(UpgUri* self, const gchar* userinfo);
 UpgUri* upg_uri_apply_reference(UpgUri* self, const gchar* reference, GError** error);
 gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** error);
+gboolean upg_uri_is_below(UpgUri* self, UpgUri* maybe_child, UpgHierarchyFlags flags);
 
 UpgUri* upg_uri_copy(UpgUri* self);
 gpointer upg_uri_ref(gpointer self);

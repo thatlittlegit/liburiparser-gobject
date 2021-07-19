@@ -1317,6 +1317,106 @@ gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** 
 }
 
 /**
+ * upg_uri_is_below:
+ * @self: (not nullable): The potential parent in the hierarchy.
+ * @other: (not nullable): The potential child of @self in the hierarchy.
+ * @flags: The flags to use; see #UpgUriFlags.
+ *
+ * Determines if @other is 'below' @self; that is, is it on the same server and
+ * protocol, and is the pathname deeper down?
+ *
+ * %UPG_HIERARCHY_LAX is the default, and allows the authentication and protocol
+ * to be changed. %UPG_HIERARCHY_LAX forbids that. By default, @self is a child
+ * of itself; use %UPG_HIERARCHY_NOSELF if it shouldn't be.
+ *
+ * Unrecognized flags are ignored.
+ *
+ * Returns: whether @other is below @self.
+ */
+gboolean upg_uri_is_below(UpgUri* self, UpgUri* other, UpgHierarchyFlags flags)
+{
+    gboolean ret = FALSE;
+
+    g_return_val_if_fail(self != NULL, FALSE);
+    g_return_val_if_fail(other != NULL, FALSE);
+
+    GList* segments_a = upg_uri_get_path(self);
+    GList* segments_b = upg_uri_get_path(other);
+
+    GList* current_a = segments_a;
+    GList* current_b = segments_b;
+    do {
+        if (current_a != NULL && current_b == NULL) {
+            /* self < other, so clearly not a child */
+            goto cleanup_segments;
+        }
+
+        if (current_a == NULL && current_b != NULL) {
+            /* self > other, so clearly a child */
+            break;
+        }
+
+        if (current_a == NULL && current_b == NULL) {
+            /* self == other, so check what we should do */
+            if (flags & UPG_HIERARCHY_NOTSELF)
+                goto cleanup_segments;
+            else
+                break;
+        }
+
+        g_assert(current_a->data != NULL);
+        g_assert(current_b->data != NULL);
+
+        if (strcmp(current_a->data, current_b->data) != 0) {
+            /* a segment is different, so clearly not a child */
+            goto cleanup_segments;
+        }
+    } while ((current_a = current_a->next), (current_b = current_b->next), 1);
+
+    gchar* scheme_a = NULL;
+    gchar* scheme_b = NULL;
+    gchar* userinfo_a = NULL;
+    gchar* userinfo_b = NULL;
+    if (flags & UPG_HIERARCHY_STRICT) {
+        scheme_a = upg_uri_get_scheme(self);
+        scheme_b = upg_uri_get_scheme(other);
+
+        if (g_strcmp0(scheme_a, scheme_b) != 0)
+            goto cleanup_strict;
+
+        userinfo_a = upg_uri_get_userinfo(self);
+        userinfo_b = upg_uri_get_userinfo(other);
+        if (g_strcmp0(userinfo_a, userinfo_b) != 0)
+            goto cleanup_strict;
+    }
+
+    gchar* hostname_a = upg_uri_get_host(self);
+    gchar* hostname_b = upg_uri_get_host(other);
+    if (g_strcmp0(hostname_a, hostname_b) != 0)
+        goto cleanup_host;
+
+    guint16 port_a = upg_uri_get_port(self);
+    guint16 port_b = upg_uri_get_port(other);
+    if (port_a != port_b)
+        goto cleanup_host; /* no need to clean uint16 */
+
+    ret = TRUE;
+
+cleanup_host:
+    g_free(hostname_a);
+    g_free(hostname_b);
+cleanup_strict:
+    g_free(scheme_a);
+    g_free(scheme_b);
+    g_free(userinfo_a);
+    g_free(userinfo_b);
+cleanup_segments:
+    g_list_free_full(segments_a, g_free);
+    g_list_free_full(segments_b, g_free);
+    return ret;
+}
+
+/**
  * upg_uri_copy:
  * @self: (not nullable): The #UpgUri to copy.
  *

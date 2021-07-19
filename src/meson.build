@@ -17,6 +17,8 @@ liburiparser_gobject_headers = [
   'upguri.h',
 ]
 
+liburiparser_gobject_sources += gnome.mkenums_simple('upgenums', sources: liburiparser_gobject_headers)
+
 liburiparser_gobject_lib = library('uriparser-gobject-' + version_split[0],
   liburiparser_gobject_sources,
   dependencies: deps,

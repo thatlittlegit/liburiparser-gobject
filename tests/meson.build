@@ -5,6 +5,7 @@ endif
 tests = [
   'copy.test.c',
   'fragments.test.c',
+  'hierarchy.test.c',
   'parser.test.c',
   'port.test.c',
   'references.test.c',
