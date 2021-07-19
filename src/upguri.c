@@ -730,9 +730,13 @@ void upg_uri_set_host(UpgUri* _self, const gchar* host)
     g_return_if_fail(UPG_IS_URI(_self));
 
     UpgUriPrivate* uri = upg_uri_get_instance_private(_self);
-    uri->modified |= MASK_HOST;
+
+    if (uri->modified & MASK_HOST) {
+        upg_free_utr(uri->internal_uri.hostText);
+    }
 
     // FIXME we should probably parse the incoming host to check if it's IPvX
+    uri->modified |= MASK_HOST;
     uri->internal_uri.hostData = (UriHostDataA) { NULL, NULL, { NULL, NULL } };
     uri->internal_uri.hostText = uritextrange_from_str(host);
     g_object_notify_by_pspec(G_OBJECT(_self), params[PROP_HOST]);
