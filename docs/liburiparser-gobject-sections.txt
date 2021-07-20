@@ -38,6 +38,10 @@ upg_uri_get_username
 upg_uri_set_userinfo
 upg_uri_apply_reference
 upg_uri_subtract_to_reference
+upg_uri_is_below
+upg_uri_hash
+upg_uri_equal
+upg_uri_nearly_equal
 upg_uri_copy
 upg_uri_ref
 upg_uri_unref
