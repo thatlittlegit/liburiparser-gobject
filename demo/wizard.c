@@ -18,10 +18,10 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 #include "config.h"
-#include <gtk/gtk.h>
 #include <glib/gi18n.h>
-#include <locale.h>
+#include <gtk/gtk.h>
 #include <liburiparser-gobject.h>
+#include <locale.h>
 
 #include "propertypair.h"
 
@@ -127,7 +127,7 @@ static void about(GtkApplication* app)
     gtk_about_dialog_set_copyright(dialog, _("Copyright 2020-2021 thatlittlegit"));
     gtk_about_dialog_set_license_type(dialog, GTK_LICENSE_LGPL_3_0);
 
-    gtk_about_dialog_set_authors(dialog, (const char*[]){ "thatlittlegit", NULL });
+    gtk_about_dialog_set_authors(dialog, (const char*[]) { "thatlittlegit", NULL });
     gtk_about_dialog_set_translator_credits(dialog, _("translator-credits"));
 
     GtkWindow* current = gtk_application_get_active_window(app);
