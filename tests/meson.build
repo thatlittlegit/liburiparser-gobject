@@ -3,6 +3,7 @@ if get_option('tests') == false
 endif
 
 tests = [
+  'comparison.test.c',
   'copy.test.c',
   'fragments.test.c',
   'hierarchy.test.c',

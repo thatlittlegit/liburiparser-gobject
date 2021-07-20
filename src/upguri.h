@@ -72,6 +72,10 @@ UpgUri* upg_uri_apply_reference(UpgUri* self, const gchar* reference, GError** e
 gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** error);
 gboolean upg_uri_is_below(UpgUri* self, UpgUri* maybe_child, UpgHierarchyFlags flags);
 
+guint upg_uri_hash(gconstpointer self);
+gboolean upg_uri_equal(gconstpointer a, gconstpointer b);
+gboolean upg_uri_nearly_equal(gconstpointer a, gconstpointer b);
+
 UpgUri* upg_uri_copy(UpgUri* self);
 gpointer upg_uri_ref(gpointer self);
 void upg_uri_unref(gpointer self);

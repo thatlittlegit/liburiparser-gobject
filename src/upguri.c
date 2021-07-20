@@ -1417,6 +1417,131 @@ cleanup_segments:
 }
 
 /**
+ * upg_uri_hash:
+ * @self: (not nullable) (type UpgUri): The #UpgUri to hash.
+ *
+ * Calculates a hash value for @self.
+ *
+ * Returns: an integer that can be used as a hash value for @self.
+ */
+guint upg_uri_hash(gconstpointer self)
+{
+    g_return_val_if_fail(UPG_IS_URI((gpointer)self), 0);
+
+    // TODO create a better, more efficient algorithm
+
+    // TODO upg_uri_to_string must never change it, but that's not guaranteed
+    gchar* str = upg_uri_to_string(UPG_URI((gpointer)self));
+    guint hash = g_str_hash(str);
+    g_free(str);
+    return hash;
+}
+
+/**
+ * upg_uri_equal:
+ * @a: (not nullable) (type UpgUri): The first #UpgUri to check.
+ * @b: (not nullable) (type UpgUri): The second #UpgUri to check.
+ *
+ * Determines if @a and @b are the same URI, including fragment parameters.
+ *
+ * Returns: Whether @a and @b are equal.
+ */
+gboolean upg_uri_equal(gconstpointer a, gconstpointer b)
+{
+    g_return_val_if_fail(UPG_IS_URI((gpointer)a), FALSE);
+    g_return_val_if_fail(UPG_IS_URI((gpointer)b), FALSE);
+
+    if (!upg_uri_nearly_equal(a, b))
+        return FALSE;
+
+    gchar* frag_a = upg_uri_get_fragment(UPG_URI((gpointer)a));
+    gchar* frag_b = upg_uri_get_fragment(UPG_URI((gpointer)b));
+    gint equal = g_strcmp0(frag_a, frag_b);
+
+    g_free(frag_a);
+    g_free(frag_b);
+
+    return equal == 0;
+}
+
+/**
+ * upg_uri_nearly_equal:
+ * @a: (not nullable) (type UpgUri): The first #UpgUri to check.
+ * @b: (not nullable) (type UpgUri): The second #UpgUri to check.
+ *
+ * Determines if @a and @b are the same URI, ignoring fragment parameters.
+ *
+ * Returns: Whether @a and @b are mostly equal.
+ */
+gboolean upg_uri_nearly_equal(gconstpointer ca, gconstpointer cb)
+{
+    UpgUri* a = (UpgUri*)ca;
+    UpgUri* b = (UpgUri*)cb;
+
+    g_return_val_if_fail(UPG_IS_URI(a), FALSE);
+    g_return_val_if_fail(UPG_IS_URI(b), FALSE);
+
+    gchar* scheme_a = upg_uri_get_scheme(a);
+    gchar* userinfo_a = upg_uri_get_userinfo(a);
+    gchar* host_a = upg_uri_get_host(a);
+    guint16 port_a = upg_uri_get_port(a);
+    gchar* query_a = upg_uri_get_query_str(a);
+
+    gchar* scheme_b = upg_uri_get_scheme(b);
+    gchar* userinfo_b = upg_uri_get_userinfo(b);
+    gchar* host_b = upg_uri_get_host(b);
+    guint16 port_b = upg_uri_get_port(b);
+    gchar* query_b = upg_uri_get_query_str(b);
+
+    gboolean strings_unequal = 0
+        || g_strcmp0(scheme_a, scheme_b) != 0
+        || g_strcmp0(userinfo_a, userinfo_b) != 0
+        || g_strcmp0(host_a, host_b) != 0
+        || port_a != port_b
+        || g_strcmp0(query_a, query_b) != 0;
+
+    g_free(scheme_a);
+    g_free(userinfo_a);
+    g_free(host_a);
+    /* again, don't need to free guint16 */
+    g_free(query_a);
+    g_free(scheme_b);
+    g_free(userinfo_b);
+    g_free(host_b);
+    g_free(query_b);
+
+    if (strings_unequal)
+        return FALSE;
+
+    GList* path_a = upg_uri_get_path(a);
+    GList* path_b = upg_uri_get_path(b);
+
+    GList* current_a = path_a;
+    GList* current_b = path_b;
+    gboolean same = FALSE;
+    for (;;) {
+        if (current_a == NULL && current_b == NULL) {
+            same = TRUE;
+            break;
+        }
+
+        if (current_a == NULL && current_b != NULL)
+            break;
+
+        if (current_a != NULL && current_b == NULL)
+            break;
+
+        if (g_strcmp0(current_a->data, current_b->data) != 0)
+            break;
+
+        current_a = current_a->next;
+        current_b = current_b->next;
+    }
+
+    return same;
+}
+
+/**
  * upg_uri_copy:
  * @self: (not nullable): The #UpgUri to copy.
  *
