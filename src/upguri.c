@@ -1538,6 +1538,9 @@ gboolean upg_uri_nearly_equal(gconstpointer ca, gconstpointer cb)
         current_b = current_b->next;
     }
 
+    g_list_free_full(path_a, g_free);
+    g_list_free_full(path_b, g_free);
+
     return same;
 }
 
