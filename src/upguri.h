@@ -43,6 +43,9 @@ typedef enum {
     UPG_HIERARCHY_NOTSELF = 2,
 } UpgHierarchyFlags;
 
+GType upg_hierarchy_flags_get_type(void);
+#define UPG_TYPE_HIERARCHY_FLAGS upg_hierarchy_flags_get_type()
+
 UpgUri* upg_uri_new(const gchar* uri, GError** error);
 gboolean upg_uri_configure_from_string(UpgUri* self, const gchar* nuri, GError** error);
 gchar* upg_uri_to_string(UpgUri* self);

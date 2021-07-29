@@ -25,7 +25,6 @@ G_BEGIN_DECLS
 
 #define __LIBURIPARSER_GOBJECT_INSIDE__
 #include "liburiparser-gobject-version.h"
-#include "upgenums.h"
 #include "upgerror.h"
 #include "upguri.h"
 #undef __LIBURIPARSER_GOBJECT_INSIDE__

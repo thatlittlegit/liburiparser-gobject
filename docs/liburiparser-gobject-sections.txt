@@ -48,6 +48,7 @@ upg_uri_unref
 <SUBSECTION Standard>
 UPG_TYPE_URI
 <SUBSECTION Private>
+upg_hierarchy_flags_get_type
 upg_uri_get_type
 </SECTION>
 <SECTION>
