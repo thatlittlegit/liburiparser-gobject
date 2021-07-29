@@ -117,6 +117,7 @@ GType upg_hierarchy_flags_get_type(void)
         { UPG_HIERARCHY_LAX, "UPG_HIERARCHY_LAX", "lax" },
         { UPG_HIERARCHY_STRICT, "UPG_HIERARCHY_STRICT", "strict" },
         { UPG_HIERARCHY_NOTSELF, "UPG_HIERARCHY_NOTSELF", "notself" },
+        { UPG_HIERARCHY_IGNOREPORT, "UPG_HIERARCHY_IGNOREPORT", "ignoreport" },
         { 0, NULL, NULL }
     };
 
@@ -1348,6 +1349,8 @@ gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** 
  * upg_uri_is_below:
  * @self: (not nullable): The potential parent in the hierarchy.
  * @other: (not nullable): The potential child of @self in the hierarchy.
+ * @default_port: The default port to use, if one port is 0. Unused if it is set
+ *                to 0.
  * @flags: The flags to use; see #UpgUriFlags.
  *
  * Determines if @other is 'below' @self; that is, is it on the same server and
@@ -1361,7 +1364,10 @@ gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** 
  *
  * Returns: whether @other is below @self.
  */
-gboolean upg_uri_is_below(UpgUri* self, UpgUri* other, UpgHierarchyFlags flags)
+gboolean upg_uri_is_below(UpgUri* self,
+    UpgUri* other,
+    guint16 default_port,
+    UpgHierarchyFlags flags)
 {
     gboolean ret = FALSE;
 
@@ -1425,6 +1431,10 @@ gboolean upg_uri_is_below(UpgUri* self, UpgUri* other, UpgHierarchyFlags flags)
 
     guint16 port_a = upg_uri_get_port(self);
     guint16 port_b = upg_uri_get_port(other);
+    if (port_a == 0)
+        port_a = default_port;
+    if (port_b == 0)
+        port_b = default_port;
     if (port_a != port_b)
         goto cleanup_host; /* no need to clean uint16 */
 

@@ -41,6 +41,7 @@ typedef enum {
     UPG_HIERARCHY_LAX = 0,
     UPG_HIERARCHY_STRICT = 1,
     UPG_HIERARCHY_NOTSELF = 2,
+    UPG_HIERARCHY_IGNOREPORT = 4,
 } UpgHierarchyFlags;
 
 GType upg_hierarchy_flags_get_type(void);
@@ -73,7 +74,7 @@ gchar* upg_uri_get_username(UpgUri* self);
 void upg_uri_set_userinfo(UpgUri* self, const gchar* userinfo);
 UpgUri* upg_uri_apply_reference(UpgUri* self, const gchar* reference, GError** error);
 gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** error);
-gboolean upg_uri_is_below(UpgUri* self, UpgUri* other, UpgHierarchyFlags flags);
+gboolean upg_uri_is_below(UpgUri* self, UpgUri* other, guint16 default_port, UpgHierarchyFlags flags);
 
 guint upg_uri_hash(gconstpointer self);
 gboolean upg_uri_equal(gconstpointer a, gconstpointer b);
