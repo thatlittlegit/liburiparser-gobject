@@ -7,7 +7,7 @@
  * published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
  *
- * This file is distributed in the hope that it will be useful, but
+ * This file is distributed nin the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
@@ -19,59 +19,59 @@
  */
 #include "common.h"
 
-static void is_below(void)
+static void is_parent_of(void)
 {
     FOR_EACH_CASE(tests)
     {
         UpgUri* uri = upg_uri_new(tests[i]->uri, NULL);
         UpgUri* copy;
 
-        g_assert_true(upg_uri_is_below(uri, uri, 0, UPG_HIERARCHY_STRICT));
-        g_assert_true(upg_uri_is_below(uri, uri, 0, UPG_HIERARCHY_LAX));
-        g_assert_false(upg_uri_is_below(uri, uri, 0, UPG_HIERARCHY_NOTSELF));
+        g_assert_true(upg_uri_is_parent_of(uri, uri, 0, UPG_HIERARCHY_STRICT));
+        g_assert_true(upg_uri_is_parent_of(uri, uri, 0, UPG_HIERARCHY_LAX));
+        g_assert_false(upg_uri_is_parent_of(uri, uri, 0, UPG_HIERARCHY_NOTSELF));
 
         copy = upg_uri_copy(uri);
         upg_uri_set_scheme(copy, "x-other-proto");
-        g_assert_false(upg_uri_is_below(copy, uri, 0, UPG_HIERARCHY_STRICT));
-        g_assert_true(upg_uri_is_below(copy, uri, 0, UPG_HIERARCHY_LAX));
+        g_assert_false(upg_uri_is_parent_of(copy, uri, 0, UPG_HIERARCHY_STRICT));
+        g_assert_true(upg_uri_is_parent_of(copy, uri, 0, UPG_HIERARCHY_LAX));
         upg_uri_unref(copy);
 
         copy = upg_uri_copy(uri);
         upg_uri_set_userinfo(copy, "user:pass");
-        g_assert_false(upg_uri_is_below(copy, uri, 0, UPG_HIERARCHY_STRICT));
-        g_assert_true(upg_uri_is_below(copy, uri, 0, UPG_HIERARCHY_LAX));
+        g_assert_false(upg_uri_is_parent_of(copy, uri, 0, UPG_HIERARCHY_STRICT));
+        g_assert_true(upg_uri_is_parent_of(copy, uri, 0, UPG_HIERARCHY_LAX));
         upg_uri_unref(copy);
 
         copy = upg_uri_copy(uri);
         upg_uri_set_host(copy, "other-host.net");
-        g_assert_false(upg_uri_is_below(copy, uri, 0, UPG_HIERARCHY_STRICT));
-        g_assert_false(upg_uri_is_below(copy, uri, 0, UPG_HIERARCHY_LAX));
+        g_assert_false(upg_uri_is_parent_of(copy, uri, 0, UPG_HIERARCHY_STRICT));
+        g_assert_false(upg_uri_is_parent_of(copy, uri, 0, UPG_HIERARCHY_LAX));
         upg_uri_unref(copy);
 
         copy = upg_uri_copy(uri);
         upg_uri_set_port(copy, 25565);
-        g_assert_false(upg_uri_is_below(copy, uri, 0, UPG_HIERARCHY_STRICT));
-        g_assert_false(upg_uri_is_below(copy, uri, 0, UPG_HIERARCHY_LAX));
+        g_assert_false(upg_uri_is_parent_of(copy, uri, 0, UPG_HIERARCHY_STRICT));
+        g_assert_false(upg_uri_is_parent_of(copy, uri, 0, UPG_HIERARCHY_LAX));
         upg_uri_set_port(copy, 0);
         guint16 original_port = upg_uri_get_port(uri);
-        g_assert_true(upg_uri_is_below(copy, uri, original_port, UPG_HIERARCHY_STRICT));
-        g_assert_true(upg_uri_is_below(copy, uri, original_port, UPG_HIERARCHY_LAX));
+        g_assert_true(upg_uri_is_parent_of(copy, uri, original_port, UPG_HIERARCHY_STRICT));
+        g_assert_true(upg_uri_is_parent_of(copy, uri, original_port, UPG_HIERARCHY_LAX));
         upg_uri_unref(copy);
 
         copy = upg_uri_copy(uri);
         upg_uri_set_path_str(copy, "/testingtesting098");
-        g_assert_false(upg_uri_is_below(copy, uri, 0, UPG_HIERARCHY_STRICT));
-        g_assert_false(upg_uri_is_below(copy, uri, 0, UPG_HIERARCHY_LAX));
+        g_assert_false(upg_uri_is_parent_of(copy, uri, 0, UPG_HIERARCHY_STRICT));
+        g_assert_false(upg_uri_is_parent_of(copy, uri, 0, UPG_HIERARCHY_LAX));
         upg_uri_unref(copy);
 
         copy = upg_uri_copy(uri);
         GList* components = upg_uri_get_path(copy);
         components = g_list_append(components, g_strdup("beneath"));
         upg_uri_set_path(copy, components);
-        g_assert_false(upg_uri_is_below(copy, uri, 0, UPG_HIERARCHY_STRICT));
-        g_assert_false(upg_uri_is_below(copy, uri, 0, UPG_HIERARCHY_LAX));
-        g_assert_true(upg_uri_is_below(uri, copy, 0, UPG_HIERARCHY_STRICT));
-        g_assert_true(upg_uri_is_below(uri, copy, 0, UPG_HIERARCHY_LAX));
+        g_assert_false(upg_uri_is_parent_of(copy, uri, 0, UPG_HIERARCHY_STRICT));
+        g_assert_false(upg_uri_is_parent_of(copy, uri, 0, UPG_HIERARCHY_LAX));
+        g_assert_true(upg_uri_is_parent_of(uri, copy, 0, UPG_HIERARCHY_STRICT));
+        g_assert_true(upg_uri_is_parent_of(uri, copy, 0, UPG_HIERARCHY_LAX));
         g_list_free_full(components, g_free);
         upg_uri_unref(copy);
 
@@ -81,5 +81,5 @@ static void is_below(void)
 
 declare_tests
 {
-    g_test_add_func("/upg_uri_is_below", is_below);
+    g_test_add_func("/upg_uri_is_parent_of", is_parent_of);
 }

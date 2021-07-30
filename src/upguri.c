@@ -1364,10 +1364,7 @@ gchar* upg_uri_subtract_to_reference(UpgUri* self, UpgUri* subtrahend, GError** 
  *
  * Returns: whether @other is below @self.
  */
-gboolean upg_uri_is_below(UpgUri* self,
-    UpgUri* other,
-    guint16 default_port,
-    UpgHierarchyFlags flags)
+gboolean upg_uri_is_parent_of(UpgUri* self, UpgUri* other, guint16 default_port, UpgHierarchyFlags flags)
 {
     gboolean ret = FALSE;
 
