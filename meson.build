@@ -1,5 +1,5 @@
 project('liburiparser-gobject', 'c',
-        version: '1.0.0-beta.1',
+        version: '1.0.0-beta.5',
   meson_version: '>= 0.50.0',
 )
 
