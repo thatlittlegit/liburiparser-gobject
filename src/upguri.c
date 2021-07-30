@@ -1377,6 +1377,12 @@ gboolean upg_uri_is_parent_of(UpgUri* self, UpgUri* other, guint16 default_port,
     GList* current_a = segments_a;
     GList* current_b = segments_b;
     do {
+        if (current_a && g_strcmp0(current_a->data, "") == 0)
+            current_a = NULL;
+
+        if (current_b && g_strcmp0(current_b->data, "") == 0)
+            current_b = NULL;
+
         if (current_a != NULL && current_b == NULL) {
             /* self < other, so clearly not a child */
             goto cleanup_segments;

@@ -65,6 +65,22 @@ static void is_parent_of(void)
         upg_uri_unref(copy);
 
         copy = upg_uri_copy(uri);
+        GList *path = upg_uri_get_path(copy);
+        GList *last = g_list_last(path);
+
+        if (last && strcmp(last->data, "") == 0) {
+            last->prev = NULL;
+            g_free(last);
+        } else {
+            path = g_list_append(path, g_strdup(""));
+        }
+
+        g_assert_true(upg_uri_is_parent_of(copy, uri, 0, UPG_HIERARCHY_STRICT));
+        g_assert_true(upg_uri_is_parent_of(copy, uri, 0, UPG_HIERARCHY_LAX));
+        g_list_free_full(path, g_free);
+        upg_uri_unref(copy);
+
+        copy = upg_uri_copy(uri);
         GList* components = upg_uri_get_path(copy);
         components = g_list_append(components, g_strdup("beneath"));
         upg_uri_set_path(copy, components);
